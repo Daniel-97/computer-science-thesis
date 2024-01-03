@@ -1,0 +1,18 @@
+[
+    {
+      "id": 1,
+      "nome": "Elemento 1",
+      "descrizione": "Descrizione dell'elemento 1"
+    },
+    {
+      "id": 2,
+      "nome": "Elemento 2",
+      "descrizione": "Descrizione dell'elemento 2"
+    },
+    {
+      "id": 3,
+      "nome": "Elemento 3",
+      "descrizione": "Descrizione dell'elemento 3"
+    }
+  ]
+  
