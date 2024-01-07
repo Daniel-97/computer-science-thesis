@@ -3,6 +3,7 @@ import json
 import sys
 
 MAX_FILE_SIZE_MB = 50000000 # 50 MB
+
 def main():
 
     if len(sys.argv) <= 1:
@@ -48,7 +49,11 @@ def main():
                     partial_file = None
                     print(f'File {file_number} saved! Size: {file_size} byte')
 
-            if file_number == 1: # todo bug, the last element did not correctly save
+            # Need for last file saving
+            if partial_file is not None and file_number == 5:
+                partial_file.write(partial_file_content + '\n]')
+                partial_file.close()
+                partial_file = None
                 break
 
 def clean_transaction(transaction):
