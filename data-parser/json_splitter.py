@@ -1,6 +1,8 @@
 import ijson
 import json
+import csv
 import sys
+import io
 from argparse import ArgumentParser
 
 MAX_FILE_SIZE = 50000000 # 50 MB
@@ -32,7 +34,7 @@ def main():
 
                 if sys.getsizeof(file_content) > MAX_FILE_SIZE:
                     print("Saving file...")
-                    save_file(path=f'{args.output}/transactions-{file_number}.json',content=file_content, format=args.format)
+                    save_file(path=f'{args.output}/transactions-{file_number}.{args.format}',content=file_content, format=args.format)
                     file_number += 1
                     file_content = ''
 
@@ -40,13 +42,44 @@ def generate_file_row(data, format, is_first_row):
     if format == 'json':
         return (',\n' if not is_first_row else '') + json.dumps(data)
     elif format == 'csv':
-        return ''
+        csv_buffer = io.StringIO()
+        csv_writer = csv.writer(csv_buffer)
+
+        # Write the header csv
+        if is_first_row:
+            headers = [
+                    'hash', 
+                    'blockNumber',
+                    'gas',
+                    'gasPrice',
+                    'input',
+                    'nonce',
+                    'value',
+                    'type',
+                    'cumulativeGasUsed',
+                    'gasUsed',
+                    'status',
+                    '@type',
+                    'from_type'
+                    'from_address',
+                    'to_type',
+                    'to_address',
+                ]
+            csv_writer.writerow(headers)
+
+        csv_writer.writerow(data.values)
+
+        csv_string = csv_buffer.getvalue()
+        csv_buffer.close()
+        return  csv_string
 
 
 def save_file(path, content, format):
     with open(path, 'w') as f:
         if format == 'json':
             f.write(f"[\n{content}\n]")
+        elif format == 'csv':
+            f.write(content)
         f.close()
         print(f'File {path} saved! Size: {len(content)} byte')
 
