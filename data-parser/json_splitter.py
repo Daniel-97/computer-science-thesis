@@ -3,14 +3,15 @@ import json
 import sys
 from argparse import ArgumentParser
 
-MAX_FILE_SIZE_MB = 50000000 # 50 MB
+MAX_FILE_SIZE = 50000000 # 50 MB
 
 def main():
 
     # Simple argument parser
     parser = ArgumentParser(description="json splitter CLI")
-    parser.add_argument('-i', '--input', required=True)
-    parser.add_argument('-o', '--output', required=True)
+    parser.add_argument('-i', '--input', required=True, help="Input file")
+    parser.add_argument('-o', '--output', required=True, help="Output folder")
+    parser.add_argument('-f', '--format', required=True, help="Output format", choices=["json", "csv"])
     args = parser.parse_args()
 
     # Open the json file
@@ -18,9 +19,7 @@ def main():
 
         array_item = ijson.items(file, "item")
         file_number = 0 # File number
-        file_size = 0 # Size in bytes
-        partial_file_content = ''
-        partial_file = None
+        file_content = ''
 
         # Loop through the array
         for item in array_item:
@@ -29,29 +28,27 @@ def main():
                 
                 transaction = clean_transaction(transaction=transaction)
                 #transaction = convert_transaction_field(transaction=transaction)
+                file_content += generate_file_row(data=transaction, format=args.format, is_first_row=len(file_content) == 0)
 
-                transaction_json = ('' if file_size == 0 else ',\n') + json.dumps(transaction)
-
-                partial_file_content += transaction_json
-                file_size += len(transaction_json)
-                
-                if file_size > MAX_FILE_SIZE_MB:
-                    save_file(path=f'{args.output}/transactions-{file_number}.json',content=partial_file_content)
+                if sys.getsizeof(file_content) > MAX_FILE_SIZE:
+                    print("Saving file...")
+                    save_file(path=f'{args.output}/transactions-{file_number}.json',content=file_content, format=args.format)
                     file_number += 1
-                    file_size = 0
-                    partial_file_content = ''
+                    file_content = ''
 
-            # Need for last file saving
-            if partial_file is not None:
-                save_file(path=f'{args.output}/transactions-{file_number}.json',content=partial_file_content)
-                break
+def generate_file_row(data, format, is_first_row):
+    if format == 'json':
+        return (',\n' if not is_first_row else '') + json.dumps(data)
+    elif format == 'csv':
+        return ''
 
-def save_file(path, content):
-    f = open(path, 'w')
-    f.write('[\n' + content + '\n]')
-    f.close()
-    print(f'File {path} saved! Size: {len(content)} byte')
 
+def save_file(path, content, format):
+    with open(path, 'w') as f:
+        if format == 'json':
+            f.write(f"[\n{content}\n]")
+        f.close()
+        print(f'File {path} saved! Size: {len(content)} byte')
 
 def clean_transaction(transaction):
 
