@@ -1,11 +1,12 @@
 import ijson
-import json
 import csv
+import json
 import sys
 import io
 from argparse import ArgumentParser
+from transaction import Transaction
 
-MAX_FILE_SIZE = 50000000 # 50 MB
+MAX_FILE_SIZE = 5000000 # 50 MB
 
 def main():
 
@@ -26,9 +27,9 @@ def main():
         # Loop through the array
         for item in array_item:
 
-            for transaction in item.get("transactions", []):
+            for transaction_dict in item.get("transactions", []):
                 
-                transaction = clean_transaction(transaction=transaction)
+                transaction = Transaction(transaction_dict)
                 #transaction = convert_transaction_field(transaction=transaction)
                 file_content += generate_file_row(data=transaction, format=args.format, is_first_row=len(file_content) == 0)
 
@@ -38,36 +39,22 @@ def main():
                     file_number += 1
                     file_content = ''
 
-def generate_file_row(data, format, is_first_row):
+def generate_file_row(data: Transaction, format, is_first_row):
+    
     if format == 'json':
-        return (',\n' if not is_first_row else '') + json.dumps(data)
+        return (',\n' if not is_first_row else '') + json.dumps(data.__dict__)
+    
     elif format == 'csv':
+        
         csv_buffer = io.StringIO()
-        csv_writer = csv.writer(csv_buffer)
+        csv_writer = csv.DictWriter(csv_buffer, data.__dict__.keys(), extrasaction='ignore')
 
         # Write the header csv
         if is_first_row:
-            headers = [
-                    'hash', 
-                    'blockNumber',
-                    'gas',
-                    'gasPrice',
-                    'input',
-                    'nonce',
-                    'value',
-                    'type',
-                    'cumulativeGasUsed',
-                    'gasUsed',
-                    'status',
-                    '@type',
-                    'from_type'
-                    'from_address',
-                    'to_type',
-                    'to_address',
-                ]
-            csv_writer.writerow(headers)
+            csv_writer.writeheader()
 
-        csv_writer.writerow(data.values)
+       # print(flat_data, type(flat_data), flat_data.keys())
+        csv_writer.writerow(data.__dict__)
 
         csv_string = csv_buffer.getvalue()
         csv_buffer.close()
@@ -82,28 +69,6 @@ def save_file(path, content, format):
             f.write(content)
         f.close()
         print(f'File {path} saved! Size: {len(content)} byte')
-
-def clean_transaction(transaction):
-
-    # if int(transaction['logsBloom'], 16) == 0:
-    #                 del transaction['logsBloom']
-
-    del transaction['logsBloom'] 
-    del transaction['blockHash']
-    del transaction['v']
-    del transaction['r']
-    del transaction['s']
-    del transaction['transactionIndex']
-    del transaction['root']
-    del transaction['chainId']
-
-    return transaction
-
-def convert_transaction_field(transaction):
-    transaction['gas'] = int(transaction['gas'], 16)
-    transaction['gasPrice'] = int(transaction['gasPrice'], 16)
-
-    return transaction
 
 if __name__ == "__main__":
     main()
