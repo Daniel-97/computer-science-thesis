@@ -6,8 +6,6 @@ import io
 from argparse import ArgumentParser
 from transaction import Transaction
 
-MAX_FILE_SIZE = 5000000 # 50 MB
-
 def main():
 
     # Simple argument parser
@@ -15,6 +13,7 @@ def main():
     parser.add_argument('-i', '--input', required=True, help="Input file")
     parser.add_argument('-o', '--output', required=True, help="Output folder")
     parser.add_argument('-f', '--format', required=True, help="Output format", choices=["json", "csv"])
+    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
     args = parser.parse_args()
 
     # Open the json file
@@ -33,7 +32,7 @@ def main():
                 #transaction = convert_transaction_field(transaction=transaction)
                 file_content += generate_file_row(data=transaction, format=args.format, is_first_row=len(file_content) == 0)
 
-                if sys.getsizeof(file_content) > MAX_FILE_SIZE:
+                if sys.getsizeof(file_content) > args.size * 1000000:
                     print("Saving file...")
                     save_file(path=f'{args.output}/transactions-{file_number}.{args.format}',content=file_content, format=args.format)
                     file_number += 1
