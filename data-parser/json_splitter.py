@@ -4,7 +4,7 @@ import json
 import sys
 import io
 from argparse import ArgumentParser
-from transaction import Transaction
+import web3
 
 def main():
 
@@ -27,10 +27,13 @@ def main():
         for item in array_item:
 
             for transaction_dict in item.get("transactions", []):
+
+                transaction_dict = clean_transaction(transaction=transaction_dict)
+
+                if not is_valid_transaction(transaction=transaction_dict):
+                    continue
                 
-                transaction = Transaction(transaction_dict)
-                #transaction = convert_transaction_field(transaction=transaction)
-                file_content += generate_file_row(data=transaction, format=args.format, is_first_row=len(file_content) == 0)
+                file_content += generate_file_row(data=transaction_dict, format=args.format, is_first_row=len(file_content) == 0)
 
                 if sys.getsizeof(file_content) > args.size * 1000000:
                     print("Saving file...")
@@ -38,27 +41,54 @@ def main():
                     file_number += 1
                     file_content = ''
 
-def generate_file_row(data: Transaction, format, is_first_row):
+def generate_file_row(data: dict, format, is_first_row):
     
     if format == 'json':
-        return (',\n' if not is_first_row else '') + json.dumps(data.__dict__)
+        return (',\n' if not is_first_row else '') + json.dumps(data)
     
     elif format == 'csv':
         
         csv_buffer = io.StringIO()
-        csv_writer = csv.DictWriter(csv_buffer, data.__dict__.keys(), extrasaction='ignore')
+        csv_writer = csv.DictWriter(csv_buffer, data.keys(), extrasaction='ignore')
 
         # Write the header csv
         if is_first_row:
             csv_writer.writeheader()
 
        # print(flat_data, type(flat_data), flat_data.keys())
-        csv_writer.writerow(data.__dict__)
+        csv_writer.writerow(data)
 
         csv_string = csv_buffer.getvalue()
         csv_buffer.close()
         return  csv_string
 
+def is_valid_transaction(transaction: dict) -> bool:
+
+    # Transaction with to null or 0 address ia a smart contract creation
+    if transaction.get('toAddress') is None or transaction.get('toAddress') == "0x0000000000000000000000000000000000000000":
+        return False
+    
+    return True
+def clean_transaction(transaction: dict) -> dict:
+
+    del transaction['nonce']
+    del transaction['transactionIndex']
+    del transaction['chainId']
+    del transaction['v']
+    del transaction['r']
+    del transaction['s']
+    del transaction['logsBloom']
+    del transaction['root']
+
+    transaction['toType'] = transaction.get('to').get('@type')
+    transaction['toAddress'] = transaction.get('to').get('address')
+    transaction['fromType'] = transaction.get('from').get('@type')
+    transaction['fromAddress'] = transaction.get('from').get('address')
+
+    del transaction['to']
+    del transaction['from']
+
+    return transaction
 
 def save_file(path, content, format):
     with open(path, 'w') as f:
