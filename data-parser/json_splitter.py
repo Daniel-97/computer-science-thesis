@@ -6,6 +6,8 @@ import io
 from argparse import ArgumentParser
 import web3
 
+from file_splitter_helper import FileSplitterHelper
+
 def main():
 
     # Simple argument parser
@@ -22,24 +24,28 @@ def main():
         array_item = ijson.items(file, "item")
         file_number = 0 # File number
         file_content = ''
+        block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
+        transaction_splitter = FileSplitterHelper('transactions', args.output + '/transactions', args.size)
 
         # Loop through the array
         for item in array_item:
 
-            for transaction_dict in item.get("transactions", []):
+            block_transactions = item.get("transactions", [])
+            if 'transactions' in item:
+                del item['transactions']
+            block_splitter.append(element=json.dumps(item))
+
+            for transaction_dict in block_transactions:
 
                 transaction_dict = clean_transaction(transaction=transaction_dict)
-
-                if not is_valid_transaction(transaction=transaction_dict):
-                    continue
                 
                 file_content += generate_file_row(data=transaction_dict, format=args.format, is_first_row=len(file_content) == 0)
-
-                if sys.getsizeof(file_content) > args.size * 1000000:
-                    print("Saving file...")
-                    save_file(path=f'{args.output}/transactions-{file_number}.{args.format}',content=file_content, format=args.format)
-                    file_number += 1
-                    file_content = ''
+                transaction_splitter.append(element=file_content)
+                # if sys.getsizeof(file_content) > args.size * 1000000:
+                #     print("Saving file...")
+                #     save_file(path=f'{args.output}/transactions-{file_number}.{args.format}',content=file_content, format=args.format)
+                #     file_number += 1
+                #     file_content = ''
 
 def generate_file_row(data: dict, format, is_first_row):
     
@@ -61,14 +67,7 @@ def generate_file_row(data: dict, format, is_first_row):
         csv_string = csv_buffer.getvalue()
         csv_buffer.close()
         return  csv_string
-
-def is_valid_transaction(transaction: dict) -> bool:
-
-    # Transaction with to null or 0 address ia a smart contract creation
-    if transaction.get('toAddress') is None or transaction.get('toAddress') == "0x0000000000000000000000000000000000000000":
-        return False
     
-    return True
 def clean_transaction(transaction: dict) -> dict:
 
     del transaction['nonce']
