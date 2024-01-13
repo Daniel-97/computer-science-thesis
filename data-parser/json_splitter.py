@@ -22,8 +22,6 @@ def main():
     with open(args.input, "rb") as file:
 
         array_item = ijson.items(file, "item")
-        file_number = 0 # File number
-        file_content = ''
         block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
         transaction_splitter = FileSplitterHelper('transactions', args.output + '/transactions', args.size)
 
@@ -33,24 +31,20 @@ def main():
             block_transactions = item.get("transactions", [])
             if 'transactions' in item:
                 del item['transactions']
-            block_splitter.append(element=json.dumps(item))
+            block_splitter.append(element=json.dumps(clean_block(item)))
 
             for transaction_dict in block_transactions:
-
+                
+                transaction_dict['timestamp'] = item.get('timestamp')
                 transaction_dict = clean_transaction(transaction=transaction_dict)
                 
-                file_content += generate_file_row(data=transaction_dict, format=args.format, is_first_row=len(file_content) == 0)
+                file_content = generate_file_row(data=transaction_dict, format=args.format, is_first_row=False)
                 transaction_splitter.append(element=file_content)
-                # if sys.getsizeof(file_content) > args.size * 1000000:
-                #     print("Saving file...")
-                #     save_file(path=f'{args.output}/transactions-{file_number}.{args.format}',content=file_content, format=args.format)
-                #     file_number += 1
-                #     file_content = ''
 
 def generate_file_row(data: dict, format, is_first_row):
     
     if format == 'json':
-        return (',\n' if not is_first_row else '') + json.dumps(data)
+        return json.dumps(data)
     
     elif format == 'csv':
         
@@ -88,6 +82,11 @@ def clean_transaction(transaction: dict) -> dict:
     del transaction['from']
 
     return transaction
+
+def clean_block(block: dict) -> dict:
+    del block['logsBloom']
+
+    return block
 
 def save_file(path, content, format):
     with open(path, 'w') as f:

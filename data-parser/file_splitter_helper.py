@@ -37,6 +37,7 @@ class FileSplitterHelper:
         with open(self._get_file_name(), 'a') as f:
             f.write('\n]')
             f.close()
+        print(f'File {self._get_file_name()} saved! ({self.file_size} byte)')
 
     def _get_file_name(self):
         return f'{self.output_folder}/{self.file_prefix}-chunk-{self.file_number}.json'
