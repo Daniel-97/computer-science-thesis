@@ -1,10 +1,11 @@
 import ijson
 import csv
 import json
-import sys
 import io
 from argparse import ArgumentParser
-import web3
+from eth._utils import address
+from eth_typing import Address
+from eth_utils import to_int, to_canonical_address
 
 from file_splitter_helper import FileSplitterHelper
 
@@ -24,6 +25,8 @@ def main():
         array_item = ijson.items(file, "item")
         block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
         transaction_splitter = FileSplitterHelper('transactions', args.output + '/transactions', args.size)
+        smart_contract_creation_splitter = FileSplitterHelper('creation',args.output + '/smart_contract', args.size)
+        smart_contract_invocation_splitter = FileSplitterHelper('invocation', args.output + '/smart_contract', args.size)
 
         # Loop through the array
         for item in array_item:
@@ -35,11 +38,23 @@ def main():
 
             for transaction_dict in block_transactions:
                 
-                transaction_dict['timestamp'] = item.get('timestamp')
                 transaction_dict = clean_transaction(transaction=transaction_dict)
                 
-                file_content = generate_file_row(data=transaction_dict, format=args.format, is_first_row=False)
-                transaction_splitter.append(element=file_content)
+                #file_content = generate_file_row(data=transaction_dict, format=args.format, is_first_row=False)
+
+                if transaction_dict.get('toAddress') is None:
+                    # Generate the smart contract address
+                    del transaction_dict['input']
+                    contract_address = address.generate_contract_address(
+                        address=to_canonical_address(transaction_dict.get("fromAddress")),
+                        nonce=int(transaction_dict.get("nonce"), 16)
+                    )
+                    transaction_dict['contractAddress'] = "0x" + contract_address.hex()
+                    smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
+                elif 'logs' in transaction_dict:
+                    smart_contract_invocation_splitter.append(element=json.dumps(transaction_dict))
+                else:
+                    transaction_splitter.append(element=json.dumps(transaction_dict))
 
 def generate_file_row(data: dict, format, is_first_row):
     
@@ -64,14 +79,8 @@ def generate_file_row(data: dict, format, is_first_row):
     
 def clean_transaction(transaction: dict) -> dict:
 
-    del transaction['nonce']
-    del transaction['transactionIndex']
     del transaction['chainId']
-    del transaction['v']
-    del transaction['r']
-    del transaction['s']
     del transaction['logsBloom']
-    del transaction['root']
 
     transaction['toType'] = transaction.get('to').get('@type')
     transaction['toAddress'] = transaction.get('to').get('address')
@@ -85,6 +94,13 @@ def clean_transaction(transaction: dict) -> dict:
 
 def clean_block(block: dict) -> dict:
     del block['logsBloom']
+    if "ommers" in block:
+        del block["ommers"]
+    if "miner" in block:
+        block["minerType"] = block.get("miner").get("@type")
+        block["minerAddress"] = block.get("miner").get("address")
+        del block["miner"]
+    
 
     return block
 

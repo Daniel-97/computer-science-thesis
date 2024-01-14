@@ -23,7 +23,7 @@ class FileSplitterHelper:
         # If the actual file is bigger than the max file size, start a new one and close the old one
         if self.file_size + len(element) > self.max_file_size or self.file_size == 0:
             if self.file_size > 0:
-                self._end_file()
+                self.end_file()
             self._start_new_file()
 
         with open(self._get_file_name(), 'a') as f:
@@ -33,7 +33,7 @@ class FileSplitterHelper:
         # Update the file size
         self.file_size = self.file_size + len(element)
         
-    def _end_file(self):
+    def end_file(self):
         with open(self._get_file_name(), 'a') as f:
             f.write('\n]')
             f.close()
