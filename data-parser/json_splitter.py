@@ -32,6 +32,7 @@ def main():
         for item in array_item:
 
             block_transactions = item.get("transactions", [])
+
             if 'transactions' in item:
                 del item['transactions']
             block_splitter.append(element=json.dumps(clean_block(item)))
@@ -40,8 +41,6 @@ def main():
                 
                 transaction_dict = clean_transaction(transaction=transaction_dict)
                 
-                #file_content = generate_file_row(data=transaction_dict, format=args.format, is_first_row=False)
-
                 if transaction_dict.get('toAddress') is None:
                     # Generate the smart contract address
                     del transaction_dict['input']
@@ -51,31 +50,12 @@ def main():
                     )
                     transaction_dict['contractAddress'] = "0x" + contract_address.hex()
                     smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
+
                 elif 'logs' in transaction_dict:
                     smart_contract_invocation_splitter.append(element=json.dumps(transaction_dict))
+
                 else:
                     transaction_splitter.append(element=json.dumps(transaction_dict))
-
-def generate_file_row(data: dict, format, is_first_row):
-    
-    if format == 'json':
-        return json.dumps(data)
-    
-    elif format == 'csv':
-        
-        csv_buffer = io.StringIO()
-        csv_writer = csv.DictWriter(csv_buffer, data.keys(), extrasaction='ignore')
-
-        # Write the header csv
-        if is_first_row:
-            csv_writer.writeheader()
-
-       # print(flat_data, type(flat_data), flat_data.keys())
-        csv_writer.writerow(data)
-
-        csv_string = csv_buffer.getvalue()
-        csv_buffer.close()
-        return  csv_string
     
 def clean_transaction(transaction: dict) -> dict:
 
@@ -89,6 +69,9 @@ def clean_transaction(transaction: dict) -> dict:
 
     del transaction['to']
     del transaction['from']
+
+    if "logs" in transaction:
+        del transaction['logs']
 
     return transaction
 
