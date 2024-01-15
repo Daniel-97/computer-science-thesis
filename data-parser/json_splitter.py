@@ -60,22 +60,25 @@ def main():
                     # Search the address in the trie (if present is is a smart contract invocation)
                     toAddress = transaction_dict.get('toAddress')
 
-                    tic = time.perf_counter()
+                    #tic = time.perf_counter()
                     if trie.exists(bytes.fromhex(toAddress[2:])):
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
-                    toc = time.perf_counter()
+                    #toc = time.perf_counter()
                     #print(toc - tic)
     
 def clean_transaction(transaction: dict) -> dict:
 
     del transaction['chainId']
     del transaction['logsBloom']
+    del transaction['type']
+    del transaction['@type']
+    del transaction['v']
+    del transaction['r']
+    del transaction['s']
 
-    transaction['toType'] = transaction.get('to').get('@type')
     transaction['toAddress'] = transaction.get('to').get('address')
-    transaction['fromType'] = transaction.get('from').get('@type')
     transaction['fromAddress'] = transaction.get('from').get('address')
 
     del transaction['to']
