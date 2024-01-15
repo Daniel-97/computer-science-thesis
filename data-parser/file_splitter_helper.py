@@ -6,38 +6,41 @@ class FileSplitterHelper:
         self.file_prefix = file_prefix
         self.output_folder = output_folder
         self.max_file_size = max_file_size_mb * 1000000
-        self.file_number = 0
+        self.file = None
         self.file_size = 0
+        self.file_number = 0
 
         Path(output_folder).mkdir(parents=True, exist_ok=True)
 
+    def _file_size(self):
+        return self.file_size
+    
     def _start_new_file(self):
         self.file_number += 1
-        with open(self._get_file_name(), 'w') as f:
-            f.write('[')
-            f.close()
-        self.file_size = 1
+        self.file = open(self._file_name(), 'w')
+        self.file.write('[')
+        self.file.close()
+        
+        self.file = open(self._file_name(), 'a') #open the file in append mode
 
     def append(self, element: str):
 
         # If the actual file is bigger than the max file size, start a new one and close the old one
-        if self.file_size + len(element) > self.max_file_size or self.file_size == 0:
+        if (self._file_size() + len(element)) > self.max_file_size or self._file_size() == 0:
             if self.file_size > 0:
                 self.end_file()
             self._start_new_file()
 
-        with open(self._get_file_name(), 'a') as f:
-            f.write((',\n' if self.file_size > 1 else '') + element)
-            f.close()
+        self.file.write((',\n' if self.file_size > 1 else '') + element)
 
         # Update the file size
-        self.file_size = self.file_size + len(element)
+        self.file_size += len(element)
         
     def end_file(self):
-        with open(self._get_file_name(), 'a') as f:
-            f.write('\n]')
-            f.close()
-        print(f'File {self._get_file_name()} saved! ({self.file_size} byte)')
+        self.file.write('\n]')
+        self.file.close()
+        print(f'File {self._file_name()} saved! ({self._file_size()} byte)')
+        self.file_size = 0
 
-    def _get_file_name(self):
+    def _file_name(self):
         return f'{self.output_folder}/{self.file_prefix}-chunk-{self.file_number}.json'

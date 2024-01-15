@@ -1,11 +1,10 @@
 import ijson
-import csv
 import json
-import io
 from argparse import ArgumentParser
 from eth._utils import address
-from eth_typing import Address
-from eth_utils import to_int, to_canonical_address
+from eth_utils import to_canonical_address
+from trie import HexaryTrie
+import time
 
 from file_splitter_helper import FileSplitterHelper
 
@@ -19,14 +18,19 @@ def main():
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
     args = parser.parse_args()
 
+    # Splitter
+    block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
+    eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', args.output + '/eoa-transactions', args.size)
+    contract_transaction_splitter = FileSplitterHelper('contract-transactions', args.output + '/contract-transactions', args.size)
+    smart_contract_creation_splitter = FileSplitterHelper('contract-creation',args.output + '/contract-creation', args.size)
+    
+    # Trie for contract address
+    trie = HexaryTrie(db={})
+
     # Open the json file
     with open(args.input, "rb") as file:
 
         array_item = ijson.items(file, "item")
-        block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
-        transaction_splitter = FileSplitterHelper('transactions', args.output + '/transactions', args.size)
-        smart_contract_creation_splitter = FileSplitterHelper('creation',args.output + '/smart_contract', args.size)
-        smart_contract_invocation_splitter = FileSplitterHelper('invocation', args.output + '/smart_contract', args.size)
 
         # Loop through the array
         for item in array_item:
@@ -48,14 +52,21 @@ def main():
                         address=to_canonical_address(transaction_dict.get("fromAddress")),
                         nonce=int(transaction_dict.get("nonce"), 16)
                     )
+                    trie.set(contract_address, b'0') #Add the address to the trie (at least one byte is required)
                     transaction_dict['contractAddress'] = "0x" + contract_address.hex()
                     smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
 
-                elif 'logs' in transaction_dict:
-                    smart_contract_invocation_splitter.append(element=json.dumps(transaction_dict))
-
                 else:
-                    transaction_splitter.append(element=json.dumps(transaction_dict))
+                    # Search the address in the trie (if present is is a smart contract invocation)
+                    toAddress = transaction_dict.get('toAddress')
+
+                    tic = time.perf_counter()
+                    if trie.exists(bytes.fromhex(toAddress[2:])):
+                        contract_transaction_splitter.append(element=json.dumps(transaction_dict))
+                    else:
+                        eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
+                    toc = time.perf_counter()
+                    #print(toc - tic)
     
 def clean_transaction(transaction: dict) -> dict:
 
