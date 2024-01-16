@@ -65,16 +65,15 @@ def main():
                     toAddress = transaction_dict.get('toAddress')
 
                     tic = time.perf_counter()
-                    is_contract_address = trie.find_prefix(toAddress[2:])
+                    is_contract_address, prefix_count = trie.find_prefix(toAddress[2:])
                     toc = time.perf_counter()
-                    print(f'trie lookup: {toc - tic}')
                     trie_lookup += toc - tic
                     if is_contract_address:
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
 
-    print(f'total trie lookup{trie_lookup}')
+    print(f'total trie lookup: {trie_lookup}s')
     
 def clean_transaction(transaction: dict) -> dict:
 
