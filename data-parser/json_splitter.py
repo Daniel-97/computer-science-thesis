@@ -61,7 +61,7 @@ def main():
                     toAddress = transaction_dict.get('toAddress')
 
                     #tic = time.perf_counter()
-                    if trie.exists(bytes.fromhex(toAddress[2:])):
+                    if trie.exists(bytes.fromhex(toAddress[2:])): # todo troppo oneroso in tempo, trovare altra soluzione
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
