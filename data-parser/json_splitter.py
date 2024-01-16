@@ -3,8 +3,8 @@ import json
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
-from trie import HexaryTrie
 import time
+from trie_hex import Trie
 
 from file_splitter_helper import FileSplitterHelper
 
@@ -25,7 +25,9 @@ def main():
     smart_contract_creation_splitter = FileSplitterHelper('contract-creation',args.output + '/contract-creation', args.size)
     
     # Trie for contract address
-    trie = HexaryTrie(db={})
+    trie = Trie()
+
+    trie_lookup = 0
 
     # Open the json file
     with open(args.input, "rb") as file:
@@ -52,7 +54,9 @@ def main():
                         address=to_canonical_address(transaction_dict.get("fromAddress")),
                         nonce=int(transaction_dict.get("nonce"), 16)
                     )
-                    trie.set(contract_address, b'0') #Add the address to the trie (at least one byte is required)
+                    #Add the address to the trie (at least one byte is required)             
+                    #trie.set(contract_address, b'0')
+                    trie.add(contract_address.hex())
                     transaction_dict['contractAddress'] = "0x" + contract_address.hex()
                     smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
 
@@ -60,13 +64,17 @@ def main():
                     # Search the address in the trie (if present is is a smart contract invocation)
                     toAddress = transaction_dict.get('toAddress')
 
-                    #tic = time.perf_counter()
-                    if trie.exists(bytes.fromhex(toAddress[2:])): # todo troppo oneroso in tempo, trovare altra soluzione
+                    tic = time.perf_counter()
+                    is_contract_address = trie.find_prefix(toAddress[2:])
+                    toc = time.perf_counter()
+                    print(f'trie lookup: {toc - tic}')
+                    trie_lookup += toc - tic
+                    if is_contract_address:
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
-                    #toc = time.perf_counter()
-                    #print(toc - tic)
+
+    print(f'total trie lookup{trie_lookup}')
     
 def clean_transaction(transaction: dict) -> dict:
 
