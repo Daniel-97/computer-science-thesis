@@ -28,20 +28,23 @@ def main():
     trie = Trie()
 
     trie_lookup = 0
+    file_write = 0
+    trie_add = 0
 
     # Open the json file
-    with open(args.input, "rb") as file:
-
-        array_item = ijson.items(file, "item")
+    with open(args.input, "rb") as file: #todo, add support for gzip file
 
         # Loop through the array
-        for item in array_item:
+        for item in ijson.items(file, "item"):
 
             block_transactions = item.get("transactions", [])
 
             if 'transactions' in item:
                 del item['transactions']
+
+            tic = time.perf_counter()
             block_splitter.append(element=json.dumps(clean_block(item)))
+            file_write += time.perf_counter() - tic
 
             for transaction_dict in block_transactions:
                 
@@ -54,11 +57,12 @@ def main():
                         address=to_canonical_address(transaction_dict.get("fromAddress")),
                         nonce=int(transaction_dict.get("nonce"), 16)
                     )
-                    #Add the address to the trie (at least one byte is required)             
-                    #trie.set(contract_address, b'0')
+                    #Add the address to the trie       
                     trie.add(contract_address.hex())
                     transaction_dict['contractAddress'] = "0x" + contract_address.hex()
+                    tic = time.perf_counter()
                     smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
+                    file_write += time.perf_counter() - tic
 
                 else:
                     # Search the address in the trie (if present is is a smart contract invocation)
@@ -68,12 +72,18 @@ def main():
                     is_contract_address, prefix_count = trie.find_prefix(toAddress[2:])
                     toc = time.perf_counter()
                     trie_lookup += toc - tic
+
+                    tic = time.perf_counter()
                     if is_contract_address:
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
+                    file_write += time.perf_counter() - tic
 
     print(f'total trie lookup: {trie_lookup}s')
+    print(f'total file write: {file_write}s')
+    print(f'total trie add: {trie_add}s')
+
     
 def clean_transaction(transaction: dict) -> dict:
 
@@ -107,15 +117,6 @@ def clean_block(block: dict) -> dict:
     
 
     return block
-
-def save_file(path, content, format):
-    with open(path, 'w') as f:
-        if format == 'json':
-            f.write(f"[\n{content}\n]")
-        elif format == 'csv':
-            f.write(content)
-        f.close()
-        print(f'File {path} saved! Size: {len(content)} byte')
 
 if __name__ == "__main__":
     main()
