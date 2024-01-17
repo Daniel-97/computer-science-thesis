@@ -19,10 +19,11 @@ def main():
     args = parser.parse_args()
 
     # Splitter
-    block_splitter = FileSplitterHelper('blocks', args.output + '/blocks', args.size)
-    eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', args.output + '/eoa-transactions', args.size)
-    contract_transaction_splitter = FileSplitterHelper('contract-transactions', args.output + '/contract-transactions', args.size)
-    smart_contract_creation_splitter = FileSplitterHelper('contract-creation',args.output + '/contract-creation', args.size)
+    block_splitter = FileSplitterHelper('blocks', args.output, args.size)
+    eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', args.output, args.size)
+    contract_transaction_splitter = FileSplitterHelper('contract-transactions', args.output, args.size)
+    smart_contract_creation_splitter = FileSplitterHelper('contract-creation', args.output, args.size)
+    log_splitter = FileSplitterHelper('contract-logs', args.output, args.size)
     
     # Trie for contract address
     trie = Trie()
@@ -69,15 +70,24 @@ def main():
                     toAddress = transaction_dict.get('toAddress')
 
                     tic = time.perf_counter()
-                    is_contract_address, prefix_count = trie.find_prefix(toAddress[2:])
+                    is_contract_address = trie.find(toAddress[2:])
                     toc = time.perf_counter()
                     trie_lookup += toc - tic
 
                     tic = time.perf_counter()
+
                     if is_contract_address:
+                        
+                        logs = transaction_dict.get('logs', [])
+                        if 'logs' in transaction_dict:
+                            del transaction_dict['logs']
                         contract_transaction_splitter.append(element=json.dumps(transaction_dict))
+                        for log in logs:
+                            log['transactionHash'] = transaction_dict['hash']
+                            log_splitter.append(element=json.dumps(log))
                     else:
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
+
                     file_write += time.perf_counter() - tic
 
     print(f'total trie lookup: {trie_lookup}s')
@@ -100,9 +110,6 @@ def clean_transaction(transaction: dict) -> dict:
 
     del transaction['to']
     del transaction['from']
-
-    if "logs" in transaction:
-        del transaction['logs']
 
     return transaction
 

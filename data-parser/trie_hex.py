@@ -52,7 +52,29 @@ class Trie():
                     break
 
             if not char_found:
-                return True, node.count
+                return False, 0
             
         return True, node.count
+    
+    def find(self, word: str) -> bool:
+
+        node = self.root
+
+        if not node.children:
+            return False, 0
+        
+        for char in word:
+            char_found = False
+            for child in node.children:
+                if child.char == char:
+                    node = child
+                    char_found = True
+                    break
+
+            if not char_found:
+                return False
+        
+        # return true only if it is a child
+        return len(node.children) == 0
+    
             
