@@ -14,15 +14,15 @@ def main():
     parser = ArgumentParser(description="json splitter CLI")
     parser.add_argument('-i', '--input', required=True, help="Input file")
     parser.add_argument('-o', '--output', required=True, help="Output folder")
-    parser.add_argument('-f', '--format', required=True, help="Output format", choices=["json", "csv"])
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
+    parser.add_argument('-bn','--block', required=False, help="Number of block to save", type=int)
     args = parser.parse_args()
 
     # Splitter
     block_splitter = FileSplitterHelper('blocks', args.output, args.size)
     eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', args.output, args.size)
     contract_transaction_splitter = FileSplitterHelper('contract-transactions', args.output, args.size)
-    smart_contract_creation_splitter = FileSplitterHelper('contract-creation', args.output, args.size)
+    contract_creation_splitter = FileSplitterHelper('contract-creation', args.output, args.size)
     log_splitter = FileSplitterHelper('contract-logs', args.output, args.size)
     
     # Trie for contract address
@@ -35,16 +35,27 @@ def main():
     # Open the json file
     with open(args.input, "rb") as file: #todo, add support for gzip file
 
+        block_number = 0
         # Loop through the array
-        for item in ijson.items(file, "item"):
+        for block in ijson.items(file, "item"):
 
-            block_transactions = item.get("transactions", [])
+            # Skip block with zero transaction
+            if "transactions" not in block:
+                continue
 
-            if 'transactions' in item:
-                del item['transactions']
+            # Save the first args.block, then exit
+            if args.block is not None and block_number > args.block:
+                break
+
+            block_number += 1
+
+            block_transactions = block.get("transactions", [])
+
+            if 'transactions' in block:
+                del block['transactions']
 
             tic = time.perf_counter()
-            block_splitter.append(element=json.dumps(clean_block(item)))
+            block_splitter.append(element=json.dumps(clean_block(block)))
             file_write += time.perf_counter() - tic
 
             for transaction_dict in block_transactions:
@@ -62,7 +73,7 @@ def main():
                     trie.add(contract_address.hex())
                     transaction_dict['contractAddress'] = "0x" + contract_address.hex()
                     tic = time.perf_counter()
-                    smart_contract_creation_splitter.append(element=json.dumps(transaction_dict))
+                    contract_creation_splitter.append(element=json.dumps(transaction_dict))
                     file_write += time.perf_counter() - tic
 
                 else:
@@ -89,6 +100,13 @@ def main():
                         eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
 
                     file_write += time.perf_counter() - tic
+
+    # Safe close all splitter
+    block_splitter.end_file()
+    eoa_transaction_splitter.end_file()
+    contract_transaction_splitter.end_file()
+    contract_creation_splitter.end_file()
+    log_splitter.end_file()
 
     print(f'total trie lookup: {trie_lookup}s')
     print(f'total file write: {file_write}s')
