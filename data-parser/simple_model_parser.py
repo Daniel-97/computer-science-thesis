@@ -4,7 +4,7 @@ import json
 class SimpleModelParser:
 
     def __init__(self, args) -> None:
-        out_folder = f'{args.output}/model2-data/'
+        out_folder = f'{args.output}/model2-data'
         self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size)
         self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size)
         self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size)

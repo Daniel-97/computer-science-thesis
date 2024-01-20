@@ -5,7 +5,7 @@ class ComplexModelParser:
 
     def __init__(self, args) -> None:
         # Splitter
-        out_folder = f'{args.output}/model1-data/'
+        out_folder = f'{args.output}/model1-data'
         self._block_splitter = FileSplitterHelper('blocks', out_folder, args.size)
         self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size)
         self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size)
