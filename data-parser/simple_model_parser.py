@@ -11,17 +11,27 @@ class SimpleModelParser:
         pass
 
     def parse_eoa_transaction(self, transaction: dict, block: dict):
-        block = self._add_dict_prefix(block, 'block')
+        block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
         self._eoa_transaction_splitter.append(element=json.dumps(transaction))
 
     def parse_contract_transaction(self, transaction: dict, block: dict):
-        block = self._add_dict_prefix(block, 'block')
-        transaction = {**transaction, **block}
-        self._contract_transaction_splitter.append(element=json.dumps(transaction))
+        tx_copy = transaction.copy()
+
+        block = self._add_dict_prefix(dict=block, prefix='block')
+        tx_copy = {**tx_copy, **block}
+
+        if 'logs' in tx_copy:
+            logs = tx_copy.get('logs', [])
+            del tx_copy['logs']
+            for index, log in enumerate(logs):
+                log = self._add_dict_prefix(dict=log, prefix=f'log_{index}')
+                tx_copy = {**tx_copy, **log}
+
+        self._contract_transaction_splitter.append(element=json.dumps(tx_copy))
 
     def parse_contract_creation(self, transaction: dict, block: dict):
-        block = self._add_dict_prefix(block, 'block')
+        block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
         self._contract_creation_splitter.append(element=json.dumps(transaction))
         

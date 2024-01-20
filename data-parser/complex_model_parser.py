@@ -17,15 +17,15 @@ class ComplexModelParser:
     
     def parse_eoa_transaction(self, transaction: dict):
         self._eoa_transaction_splitter.append(element=json.dumps(transaction))
-        pass
 
     def parse_contract_transaction(self, transaction: dict):
-        logs = transaction.get('logs', [])
-        if 'logs' in transaction:
-            del transaction['logs']
-        self._contract_transaction_splitter.append(element=json.dumps(transaction))
+        tx_copy = transaction.copy()
+        logs = tx_copy.get('logs', [])
+        if 'logs' in tx_copy:
+            del tx_copy['logs']
+        self._contract_transaction_splitter.append(element=json.dumps(tx_copy))
         for log in logs:
-            log['transactionHash'] = transaction['hash']
+            log['transactionHash'] = tx_copy['hash']
             self._log_splitter.append(element=json.dumps(log))
 
     def parse_contract_creation(self, transaction:dict):
