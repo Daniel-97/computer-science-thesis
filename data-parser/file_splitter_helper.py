@@ -37,10 +37,11 @@ class FileSplitterHelper:
         self.file_size += len(element)
         
     def end_file(self):
-        self.file.write('\n]')
-        self.file.close()
-        print(f'File {self._file_name()} saved! ({self._file_size()} byte)')
-        self.file_size = 0
+        if self.file is not None:
+            self.file.write('\n]')
+            self.file.close()
+            print(f'File {self._file_name()} saved! ({self._file_size()} byte)')
+            self.file_size = 0
 
     def _file_name(self):
         return f'{self.output_folder}/{self.file_prefix}-chunk-{self.file_number}.json'
