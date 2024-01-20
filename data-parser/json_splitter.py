@@ -17,7 +17,7 @@ def main():
     parser.add_argument('-i', '--input', required=True, help="Input file")
     parser.add_argument('-o', '--output', required=True, help="Output folder")
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
-    parser.add_argument('-bn','--block', required=False, help="Number of block to save", type=int)
+    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
     
     # Trie for contract address
@@ -30,19 +30,17 @@ def main():
     # Open the json file
     with open(args.input, "rb") as file: #todo, add support for gzip file
 
-        block_number = 0
+        transaction_count = 0
+        close = False
         # Loop through the array
         for block in ijson.items(file, "item"):
+
+            if close:
+                break
 
             # Skip block with zero transaction
             if "transactions" not in block:
                 continue
-
-            # Save the firsts args.block blocks, then exit
-            if args.block is not None and block_number > args.block:
-                break
-
-            block_number += 1
 
             transactions = block.get("transactions", [])
 
@@ -52,7 +50,13 @@ def main():
             model1_parser.parse_block(block=clean_block(block))
 
             for transaction in transactions:
-                
+
+                # Save the firsts args.block blocks, then exit
+                if args.transaction is not None and transaction_count >= args.transaction:
+                    close = True
+                    break
+
+                transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
                 
                 if transaction.get('toAddress') is None:
@@ -73,8 +77,10 @@ def main():
                 else:
                     # Search the address in the trie (if present is is a smart contract invocation)
                     toAddress = transaction.get('toAddress')
+                    tic = time.perf_counter()
                     is_contract_address = trie.find(toAddress[2:])
-
+                    trie_lookup += time.perf_counter() - tic
+                    
                     if is_contract_address: 
                         model1_parser.parse_contract_transaction(transaction)
                         model2_parser.parse_contract_transaction(transaction, block)
