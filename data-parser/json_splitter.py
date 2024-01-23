@@ -59,6 +59,7 @@ def main():
                 transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
                 
+                # If the destination address is None then it is a smart contract creation
                 if transaction.get('toAddress') is None:
                     del transaction['input']    
                     # Generate the smart contract address
@@ -85,8 +86,16 @@ def main():
                         model1_parser.parse_contract_transaction(transaction)
                         model2_parser.parse_contract_transaction(transaction, block)
                     else:
-                        model1_parser.parse_eoa_transaction(transaction)
-                        model2_parser.parse_eoa_transaction(transaction, block)
+                        # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
+
+                        # If there are logs in the transaction it means it is a smart contract invocation
+                        if 'logs' in transaction:
+                            model1_parser.parse_contract_transaction(transaction)
+                            model2_parser.parse_contract_transaction(transaction, block)
+                            
+                        else:
+                            model1_parser.parse_eoa_transaction(transaction)
+                            model2_parser.parse_eoa_transaction(transaction, block)
 
 
     print(f'total trie lookup: {trie_lookup}s')
