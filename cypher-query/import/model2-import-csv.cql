@@ -8,8 +8,8 @@ WITH row AS transaction
 MERGE (fromNode: Account {address: transaction.fromAddress})
 MERGE (toNode: Account {address: transaction.toAddress})
 
-MERGE (fromNode)-[r:sent]->(toNode)
-ON CREATE SET t = properties(transaction)
+CREATE (fromNode)-[r:sent]->(toNode)
+ON CREATE SET r = properties(transaction)
 
 
 // QUERY 2, CONTRACT INVOCATION TRANSACTIONS
@@ -18,8 +18,8 @@ WITH row AS transaction
 MERGE (fromNome: Account {address: transaction.fromAddress})
 MERGE (contract: SmartContract {address: transaction.toAddress})
 
-MERGE (fromNode)-[r:invoked]->(contract)
-ON CREATE SET r = properties(transaction)
+CREATE (fromNode)-[r:invoked]->(contract)
+SET r = properties(transaction)
 
 
 // QUERY 3, CONTRACT CREATION TRANSACTIONS
@@ -28,8 +28,8 @@ WITH row AS transaction
 MERGE (fromNome: Account {address: transaction.fromAddress})
 MERGE (contract: SmartContract {address: transaction.contractAddress})
 
-MERGE (fromNode)-[r:created]->(contract)
-ON CREATE SET r = properties(transaction)
+CREATE (fromNode)-[r:created]->(contract)
+SET r = properties(transaction)
 
 
 
