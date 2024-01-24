@@ -1,5 +1,4 @@
 import ijson
-import json
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
@@ -17,6 +16,7 @@ def main():
     parser.add_argument('-i', '--input', required=True, help="Input file")
     parser.add_argument('-o', '--output', required=True, help="Output folder")
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
+    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
     

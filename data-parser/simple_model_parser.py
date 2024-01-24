@@ -5,15 +5,15 @@ class SimpleModelParser:
 
     def __init__(self, args) -> None:
         out_folder = f'{args.output}/model2-data'
-        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size)
-        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size)
-        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size)
+        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size, args.format)
+        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size, args.format)
+        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
         pass
 
     def parse_eoa_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._eoa_transaction_splitter.append(element=json.dumps(transaction))
+        self._eoa_transaction_splitter.append(element=transaction)
 
     def parse_contract_transaction(self, transaction: dict, block: dict):
         tx_copy = transaction.copy()
@@ -28,12 +28,12 @@ class SimpleModelParser:
                 log = self._add_dict_prefix(dict=log, prefix=f'log_{index}')
                 tx_copy = {**tx_copy, **log}
 
-        self._contract_transaction_splitter.append(element=json.dumps(tx_copy))
+        self._contract_transaction_splitter.append(element=tx_copy)
 
     def parse_contract_creation(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._contract_creation_splitter.append(element=json.dumps(transaction))
+        self._contract_creation_splitter.append(element=transaction)
         
     def close_parser(self):
         self._eoa_transaction_splitter.end_file()
