@@ -8,12 +8,12 @@ CREATE CONSTRAINT IF NOT EXISTS FOR (contract: SmartContract) REQUIRE contract.a
 // QUERY 1, EOA TRANSACTIONS
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/eoa-transactions/eoa-transactions-1.csv" AS transaction
 call {
-    WITH row AS transaction
+    WITH transaction
     MERGE (fromNode: Account {address: transaction.fromAddress})
     MERGE (toNode: Account {address: transaction.toAddress})
 
     CREATE (fromNode)-[r:sent]->(toNode)
-    ON CREATE SET r = properties(transaction)
+    SET r = properties(transaction)
 } IN TRANSACTIONS OF 10000 ROWS;
 
 

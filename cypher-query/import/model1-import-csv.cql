@@ -72,9 +72,12 @@ call {
     MATCH (transaction: Transaction {hash: transactionHash})
     CREATE (transaction)-[:emitted]->(event)
 
-    // QUERY 5, BLOCKS
-    LOAD CSV WITH HEADERS FROM "file:///output/model1-data/blocks/blocks-1.csv" AS row
-    WITH row AS block
+} IN TRANSACTIONS OF 10000 ROWS;
+
+// QUERY 5, BLOCKS
+:auto LOAD CSV WITH HEADERS FROM "file:///output/model1-data/blocks/blocks-1.csv" AS block
+call {
+    WITH block
     MERGE (b: Block {hash: block.hash})
     set b = properties(block)
 } IN TRANSACTIONS OF 10000 ROWS;
