@@ -31,7 +31,7 @@ class FileSplitterHelper:
         row = self._generate_row(element)
 
         # If the actual file is bigger than the max file size, start a new one and close the old one
-        if (self._file_size() + len(row)) > self.max_file_size or self._file_size() == 0:
+        if (self.max_file_size > 0 and (self._file_size() + len(row)) > self.max_file_size) or self._file_size() == 0:
             if self.file_size > 0:
                 self.end_file()
             self._start_new_file()
@@ -55,7 +55,7 @@ class FileSplitterHelper:
             # Topics is an array, need to flat it
             if 'topics' in element:
                 element['topics'] = ','.join(element['topics'])
-                
+
             csv_writer.writerow(element)
             csv_string = csv_buffer.getvalue()
             csv_buffer.close()
