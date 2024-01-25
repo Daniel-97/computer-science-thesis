@@ -90,6 +90,7 @@ def main():
 
                         # If there are logs in the transaction it means it is a smart contract invocation
                         if 'logs' in transaction:
+                            trie.add(toAddress) # Add the destination address to the trie
                             model1_parser.parse_contract_transaction(transaction)
                             model2_parser.parse_contract_transaction(transaction, block)
                             

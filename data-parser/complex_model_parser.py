@@ -29,7 +29,14 @@ class ComplexModelParser:
             self._log_splitter.append(element=log)
 
     def parse_contract_creation(self, transaction:dict):
-        self._contract_creation_splitter.append(element=transaction)
+        tx_copy = transaction.copy()
+        logs = tx_copy.get('logs', [])
+        if 'logs' in tx_copy:
+            del tx_copy['logs']
+        self._contract_creation_splitter.append(element=tx_copy)
+        for log in logs:
+            log['transactionHash'] = tx_copy['hash']
+            self._log_splitter.append(element=log)
 
     def close_parser(self):
         # Safe close all splitter
