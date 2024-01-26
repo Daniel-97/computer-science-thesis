@@ -61,7 +61,7 @@ class Trie():
         node = self.root
 
         if not node.children:
-            return False, 0
+            return False
         
         for char in word:
             char_found = False

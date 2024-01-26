@@ -1,10 +1,11 @@
 import ijson
-import json
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
 import time
 from trie_hex import Trie
+from complex_model_parser import ComplexModelParser
+from simple_model_parser import SimpleModelParser
 
 from file_splitter_helper import FileSplitterHelper
 
@@ -14,103 +15,93 @@ def main():
     parser = ArgumentParser(description="json splitter CLI")
     parser.add_argument('-i', '--input', required=True, help="Input file")
     parser.add_argument('-o', '--output', required=True, help="Output folder")
-    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes", type=int)
-    parser.add_argument('-bn','--block', required=False, help="Number of block to save", type=int)
+    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
+    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
+    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
-
-    # Splitter
-    block_splitter = FileSplitterHelper('blocks', args.output, args.size)
-    eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', args.output, args.size)
-    contract_transaction_splitter = FileSplitterHelper('contract-transactions', args.output, args.size)
-    contract_creation_splitter = FileSplitterHelper('contract-creation', args.output, args.size)
-    log_splitter = FileSplitterHelper('contract-logs', args.output, args.size)
     
     # Trie for contract address
     trie = Trie()
+    model1_parser = ComplexModelParser(args)
+    model2_parser = SimpleModelParser(args)
 
     trie_lookup = 0
-    file_write = 0
-    trie_add = 0
 
     # Open the json file
     with open(args.input, "rb") as file: #todo, add support for gzip file
 
-        block_number = 0
+        transaction_count = 0
+        close = False
         # Loop through the array
         for block in ijson.items(file, "item"):
+
+            if close:
+                break
 
             # Skip block with zero transaction
             if "transactions" not in block:
                 continue
 
-            # Save the first args.block, then exit
-            if args.block is not None and block_number > args.block:
-                break
-
-            block_number += 1
-
-            block_transactions = block.get("transactions", [])
+            transactions = block.get("transactions", [])
 
             if 'transactions' in block:
                 del block['transactions']
 
-            tic = time.perf_counter()
-            block_splitter.append(element=json.dumps(clean_block(block)))
-            file_write += time.perf_counter() - tic
+            model1_parser.parse_block(block=clean_block(block))
 
-            for transaction_dict in block_transactions:
+            for transaction in transactions:
+
+                # Save the firsts args.block blocks, then exit
+                if args.transaction is not None and transaction_count >= args.transaction:
+                    close = True
+                    break
+
+                transaction_count += 1
+                transaction = clean_transaction(transaction=transaction)
                 
-                transaction_dict = clean_transaction(transaction=transaction_dict)
-                
-                if transaction_dict.get('toAddress') is None:
+                # If the destination address is None then it is a smart contract creation
+                if transaction.get('toAddress') is None:
+                    del transaction['input']    
                     # Generate the smart contract address
-                    del transaction_dict['input']
                     contract_address = address.generate_contract_address(
-                        address=to_canonical_address(transaction_dict.get("fromAddress")),
-                        nonce=int(transaction_dict.get("nonce"), 16)
+                        address=to_canonical_address(transaction.get("fromAddress")),
+                        nonce=int(transaction.get("nonce"), 16)
                     )
                     #Add the address to the trie       
                     trie.add(contract_address.hex())
-                    transaction_dict['contractAddress'] = "0x" + contract_address.hex()
-                    tic = time.perf_counter()
-                    contract_creation_splitter.append(element=json.dumps(transaction_dict))
-                    file_write += time.perf_counter() - tic
+                    transaction['contractAddress'] = "0x" + contract_address.hex()
+
+                    # call model parser
+                    model1_parser.parse_contract_creation(transaction)
+                    model2_parser.parse_contract_creation(transaction, block)
 
                 else:
                     # Search the address in the trie (if present is is a smart contract invocation)
-                    toAddress = transaction_dict.get('toAddress')
-
+                    toAddress = transaction.get('toAddress')
                     tic = time.perf_counter()
                     is_contract_address = trie.find(toAddress[2:])
-                    toc = time.perf_counter()
-                    trie_lookup += toc - tic
-
-                    tic = time.perf_counter()
-
-                    if is_contract_address:
-                        
-                        logs = transaction_dict.get('logs', [])
-                        if 'logs' in transaction_dict:
-                            del transaction_dict['logs']
-                        contract_transaction_splitter.append(element=json.dumps(transaction_dict))
-                        for log in logs:
-                            log['transactionHash'] = transaction_dict['hash']
-                            log_splitter.append(element=json.dumps(log))
+                    trie_lookup += time.perf_counter() - tic
+                    
+                    if is_contract_address: 
+                        model1_parser.parse_contract_transaction(transaction)
+                        model2_parser.parse_contract_transaction(transaction, block)
                     else:
-                        eoa_transaction_splitter.append(element=json.dumps(transaction_dict))
+                        # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
 
-                    file_write += time.perf_counter() - tic
+                        # If there are logs in the transaction it means it is a smart contract invocation
+                        if 'logs' in transaction:
+                            trie.add(toAddress) # Add the destination address to the trie
+                            model1_parser.parse_contract_transaction(transaction)
+                            model2_parser.parse_contract_transaction(transaction, block)
+                            
+                        else:
+                            model1_parser.parse_eoa_transaction(transaction)
+                            model2_parser.parse_eoa_transaction(transaction, block)
 
-    # Safe close all splitter
-    block_splitter.end_file()
-    eoa_transaction_splitter.end_file()
-    contract_transaction_splitter.end_file()
-    contract_creation_splitter.end_file()
-    log_splitter.end_file()
 
     print(f'total trie lookup: {trie_lookup}s')
-    print(f'total file write: {file_write}s')
-    print(f'total trie add: {trie_add}s')
+    model1_parser.close_parser()
+    model2_parser.close_parser()
 
     
 def clean_transaction(transaction: dict) -> dict:
