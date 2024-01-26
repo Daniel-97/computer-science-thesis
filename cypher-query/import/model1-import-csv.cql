@@ -67,6 +67,7 @@ call {
     WITH log
     CREATE (event: Event)
     SET event = properties(log)
+    SET event.topics = SPLIT(log.topics,',')
 
     WITH event, log.transactionHash as transactionHash
     MATCH (transaction: Transaction {hash: transactionHash})
