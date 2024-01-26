@@ -26,6 +26,24 @@ call {
 
     CREATE (fromNode)-[r:invoked]->(contract)
     SET r = properties(transaction)
+    SET r.logs_index = SPLIT(transaction.logs_index,',')
+    SET r.logs_data = SPLIT(transaction.logs_data,',')
+    SET r.logs_block_number = SPLIT(transaction.logs_block_number,',')
+    SET r.logs_transaction_index = SPLIT(transaction.logs_transaction_index,',')
+    SET r.logs_index = SPLIT(transaction.logs_index,',')
+    SET r.logs_type = SPLIT(transaction.logs_type,',')
+    SET r.logs_type = SPLIT(transaction.logs_index,',')
+    SET r.logs_transaction_hash = SPLIT(transaction.logs_transaction_hash,',')
+
+    // split by , resplit by ; and save the result as collection of collections. Not supported by neo4j
+    // WITH transaction, SPLIT(transaction.logs_topic,',') AS topics
+    //     UNWIND topics as topic
+    //     WITH transaction, SPLIT(topic, ';') as subtopics
+    //         WITH transaction, COLLECT(subtopics) as subtopic
+    //             MERGE (fromNode)-[r:invoked]->(contract)
+    //             SET r.logs_topic = COALESCE(r.logs_topic, []) + subtopic
+    SET r.logs_topic = SPLIT(transaction.logs_topic,',')
+
 } IN TRANSACTIONS OF 10000 ROWS;
 
 
@@ -38,6 +56,15 @@ call {
 
     CREATE (fromNode)-[r:created]->(contract)
     SET r = properties(transaction)
+    SET r.logs_topic = SPLIT(transaction.logs_topic,',')
+    SET r.logs_index = SPLIT(transaction.logs_index,',')
+    SET r.logs_data = SPLIT(transaction.logs_data,',')
+    SET r.logs_block_number = SPLIT(transaction.logs_block_number,',')
+    SET r.logs_transaction_index = SPLIT(transaction.logs_transaction_index,',')
+    SET r.logs_index = SPLIT(transaction.logs_index,',')
+    SET r.logs_type = SPLIT(transaction.logs_type,',')
+    SET r.logs_type = SPLIT(transaction.logs_index,',')
+    SET r.logs_transaction_hash = SPLIT(transaction.logs_transaction_hash,',')
 } IN TRANSACTIONS OF 10000 ROWS;
 
 
