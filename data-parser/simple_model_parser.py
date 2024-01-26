@@ -21,6 +21,7 @@ class SimpleModelParser:
         block = self._add_dict_prefix(dict=block, prefix='block')
         tx_copy = {**tx_copy, **block}
 
+        # TODO cosi non va bene, i log vanno messi in una sola colonna del csv altrimenti si perdono
         if 'logs' in tx_copy:
             logs = tx_copy.get('logs', [])
             del tx_copy['logs']
@@ -31,9 +32,20 @@ class SimpleModelParser:
         self._contract_transaction_splitter.append(element=tx_copy)
 
     def parse_contract_creation(self, transaction: dict, block: dict):
+        tx_copy = transaction.copy()
+
         block = self._add_dict_prefix(dict=block,prefix='block')
-        transaction = {**transaction, **block}
-        self._contract_creation_splitter.append(element=transaction)
+        tx_copy = {**tx_copy, **block}
+
+        # TODO cosi non va bene, i log vanno messi in una sola colonna del csv altrimenti si perdono
+        if 'logs' in tx_copy:
+            logs = tx_copy.get('logs', [])
+            del tx_copy['logs']
+            for index, log in enumerate(logs):
+                log = self._add_dict_prefix(dict=log, prefix=f'log_{index}')
+                tx_copy = {**tx_copy, **log}
+
+        self._contract_creation_splitter.append(element=tx_copy)
         
     def close_parser(self):
         self._eoa_transaction_splitter.end_file()
