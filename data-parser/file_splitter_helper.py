@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import csv
 import io
+import copy
 
 class FileSplitterHelper:
 
@@ -42,7 +43,7 @@ class FileSplitterHelper:
         self.file_size += bytes_wrote
     
     def _generate_row(self, element: dict):
-
+        element = copy.deepcopy(element)
         if_first_row = self.file_size == 0
 
         if self.format == "csv":

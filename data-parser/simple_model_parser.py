@@ -67,7 +67,6 @@ class SimpleModelParser:
 
             for log in logs:
                 transaction['logs_address'].append(log.get('address',''))
-                #breakpoint()
                 transaction['logs_topic'].append(';'.join(log.get('topics','')))
                 transaction['logs_data'].append(log.get('data'))
                 transaction['logs_block_number'].append(log.get('blockNumber',''))
