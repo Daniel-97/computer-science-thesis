@@ -52,9 +52,10 @@ class FileSplitterHelper:
             if if_first_row:
                 csv_writer.writeheader()
 
-            # Topics is an array, need to flat it
-            if 'topics' in element:
-                element['topics'] = ','.join(element['topics'])
+            # Flatten all array items
+            for key in element:
+                if type(element[key]) is list:
+                    element[key] = ','.join(element[key]) 
 
             csv_writer.writerow(element)
             csv_string = csv_buffer.getvalue()

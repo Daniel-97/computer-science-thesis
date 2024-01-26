@@ -19,23 +19,27 @@ class ComplexModelParser:
         self._eoa_transaction_splitter.append(element=transaction)
 
     def parse_contract_transaction(self, transaction: dict):
-        tx_copy = transaction.copy()
-        logs = tx_copy.get('logs', [])
-        if 'logs' in tx_copy:
-            del tx_copy['logs']
-        self._contract_transaction_splitter.append(element=tx_copy)
+        transaction = transaction.copy()
+        logs = transaction.get('logs', [])
+
+        if 'logs' in transaction:
+            del transaction['logs']
+        self._contract_transaction_splitter.append(element=transaction)
+
         for log in logs:
-            log['transactionHash'] = tx_copy['hash']
+            log['transactionHash'] = transaction['hash']
             self._log_splitter.append(element=log)
 
     def parse_contract_creation(self, transaction:dict):
-        tx_copy = transaction.copy()
-        logs = tx_copy.get('logs', [])
-        if 'logs' in tx_copy:
-            del tx_copy['logs']
-        self._contract_creation_splitter.append(element=tx_copy)
+        transaction = transaction.copy()
+        logs = transaction.get('logs', [])
+
+        if 'logs' in transaction:
+            del transaction['logs']
+        self._contract_creation_splitter.append(element=transaction)
+
         for log in logs:
-            log['transactionHash'] = tx_copy['hash']
+            log['transactionHash'] = transaction['hash']
             self._log_splitter.append(element=log)
 
     def close_parser(self):
