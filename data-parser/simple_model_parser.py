@@ -67,7 +67,13 @@ class SimpleModelParser:
 
             for log in logs:
                 transaction['logs_address'].append(log.get('address',''))
-                transaction['logs_topic'].append(';'.join(log.get('topics','')))
+                # Non posso memorizzare array di array, ma so che i topics possono essere al massimo 3. 
+                # Quindi li metto tutti nello stesso array parallelo, e quindi so che i primi 3 sono del primo log
+                # i secondi 3 del secondo log e cosi via. Se trovo -1 non ho topic in quella posizione
+                topics = ['-1','-1','-1', '-1']
+                for index, topic in enumerate(log.get('topics', [])):
+                    topics[index] = topic
+                transaction['logs_topic'].append(','.join(topics))
                 transaction['logs_data'].append(log.get('data'))
                 transaction['logs_block_number'].append(log.get('blockNumber',''))
                 transaction['logs_transaction_index'].append(log.get('transactionIndex',''))
