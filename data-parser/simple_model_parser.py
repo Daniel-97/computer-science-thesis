@@ -8,7 +8,7 @@ class SimpleModelParser:
         self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size, args.format)
         self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size, args.format)
         self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
-        pass
+        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, args.size, args.format)
 
     def parse_eoa_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
@@ -34,11 +34,21 @@ class SimpleModelParser:
         self._flatten_logs(transaction)
 
         self._contract_creation_splitter.append(element=transaction)
-        
+
+    def parse_unknown_transaction(self, transaction: dict, block: dict):
+        block = self._add_dict_prefix(dict=block,prefix='block')
+        transaction = {**transaction, **block}
+        self._unknown_transaction_splitter.append(element=transaction)
+
     def close_parser(self):
         self._eoa_transaction_splitter.end_file()
         self._contract_transaction_splitter.end_file()
         self._contract_creation_splitter.end_file()
+
+        print("Model 2 (simple) stats:")
+        print("- total EOA transaction: ", self._eoa_transaction_splitter.total_row_saved)
+        print("- total contract transaction: ", self._contract_transaction_splitter.total_row_saved)
+        print("- total contract creation transaction: ", self._contract_creation_splitter.total_row_saved)
 
     def _add_dict_prefix(self, dict: dict, prefix: str):
         new_dict = {}

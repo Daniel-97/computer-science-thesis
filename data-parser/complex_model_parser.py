@@ -11,6 +11,7 @@ class ComplexModelParser:
         self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size, args.format)
         self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
         self._log_splitter = FileSplitterHelper('contract-logs', out_folder, args.size, args.format)
+        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, args.size, args.format)
 
     def parse_block(self, block: dict):
         self._block_splitter.append(element=block)
@@ -42,6 +43,9 @@ class ComplexModelParser:
             log['transactionHash'] = transaction['hash']
             self._log_splitter.append(element=log)
 
+    def parse_unknown_transaction(self, transaction: dict):
+        self._unknown_transaction_splitter.append(element=transaction)
+
     def close_parser(self):
         # Safe close all splitter
         self._block_splitter.end_file()
@@ -49,3 +53,10 @@ class ComplexModelParser:
         self._contract_transaction_splitter.end_file()
         self._contract_creation_splitter.end_file()
         self._log_splitter.end_file()
+
+        print("Model 1 (complex) stats:")
+        print("- total blocks: ", self._block_splitter.total_row_saved)
+        print("- total EOA transaction: ", self._eoa_transaction_splitter.total_row_saved)
+        print("- total contract transaction: ", self._contract_transaction_splitter.total_row_saved)
+        print("- total contract creation transaction: ", self._contract_creation_splitter.total_row_saved)
+        print("- total logs: ", self._log_splitter.total_row_saved)

@@ -59,8 +59,9 @@ def main():
                 transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
                 
+                to_address = transaction.get('toAddress')
                 # If the destination address is None then it is a smart contract creation
-                if transaction.get('toAddress') is None:
+                if to_address is None:
                     del transaction['input']    
                     # Generate the smart contract address
                     contract_address = address.generate_contract_address(
@@ -74,12 +75,22 @@ def main():
                     # call model parser
                     model1_parser.parse_contract_creation(transaction)
                     model2_parser.parse_contract_creation(transaction, block)
+                # # If there are logs in the transaction, it is a smart contract invocation
+                # elif 'logs' in transaction:
+                #     trie.add(to_address) # Add the destination address to the trie
+                #     model1_parser.parse_contract_transaction(transaction)
+                #     model2_parser.parse_contract_transaction(transaction, block)
+
+                # # It can be an EOA transaction or a smart contract invocation
+                # else:
+                #     is_contract_address = trie.find(to_address[2:])
+                #     if is_contract_address:
+
 
                 else:
                     # Search the address in the trie (if present is is a smart contract invocation)
-                    toAddress = transaction.get('toAddress')
                     tic = time.perf_counter()
-                    is_contract_address = trie.find(toAddress[2:])
+                    is_contract_address = trie.find(to_address[2:])
                     trie_lookup += time.perf_counter() - tic
                     
                     if is_contract_address: 
@@ -90,7 +101,7 @@ def main():
 
                         # If there are logs in the transaction it means it is a smart contract invocation
                         if 'logs' in transaction:
-                            trie.add(toAddress) # Add the destination address to the trie
+                            trie.add(to_address) # Add the destination address to the trie
                             model1_parser.parse_contract_transaction(transaction)
                             model2_parser.parse_contract_transaction(transaction, block)
                             

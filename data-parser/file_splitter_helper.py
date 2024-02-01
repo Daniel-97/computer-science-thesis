@@ -14,6 +14,7 @@ class FileSplitterHelper:
         self.file = None
         self.file_size = 0
         self.file_number = 0
+        self.total_row_saved = 0
 
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
 
@@ -41,6 +42,7 @@ class FileSplitterHelper:
 
         # Update the file size
         self.file_size += bytes_wrote
+        self.total_row_saved += 1
     
     def _generate_row(self, element: dict):
         element = copy.deepcopy(element)
