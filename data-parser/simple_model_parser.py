@@ -44,11 +44,13 @@ class SimpleModelParser:
         self._eoa_transaction_splitter.end_file()
         self._contract_transaction_splitter.end_file()
         self._contract_creation_splitter.end_file()
+        self._unknown_transaction_splitter.end_file()
 
         print("Model 2 (simple) stats:")
-        print("- total EOA transaction: ", self._eoa_transaction_splitter.total_row_saved)
-        print("- total contract transaction: ", self._contract_transaction_splitter.total_row_saved)
-        print("- total contract creation transaction: ", self._contract_creation_splitter.total_row_saved)
+        print("- total EOA transactions: ", self._eoa_transaction_splitter.total_row_saved)
+        print("- total contract transactions: ", self._contract_transaction_splitter.total_row_saved)
+        print("- total contract creation transactions: ", self._contract_creation_splitter.total_row_saved)
+        print("- total unknown transactions: ", self._unknown_transaction_splitter.total_row_saved)
 
     def _add_dict_prefix(self, dict: dict, prefix: str):
         new_dict = {}

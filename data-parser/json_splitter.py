@@ -20,8 +20,10 @@ def main():
     parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
     
-    # Trie for contract address
-    trie = Trie()
+    SC_trie = Trie() # Trie for contract address
+    EOA_trie = Trie() # Trie for EAO address
+
+    # Model parser
     model1_parser = ComplexModelParser(args)
     model2_parser = SimpleModelParser(args)
 
@@ -55,59 +57,73 @@ def main():
                 if args.transaction is not None and transaction_count >= args.transaction:
                     close = True
                     break
-
+                
                 transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
-                
+
                 to_address = transaction.get('toAddress')
+                from_address = transaction.get('fromAddress')
+                EOA_trie.add(from_address[2:]) # Add the EOA address to the EOA trie
+
                 # If the destination address is None then it is a smart contract creation
                 if to_address is None:
-                    del transaction['input']    
+                    del transaction['input'] # Contains the smart contract code
                     # Generate the smart contract address
                     contract_address = address.generate_contract_address(
                         address=to_canonical_address(transaction.get("fromAddress")),
                         nonce=int(transaction.get("nonce"), 16)
                     )
                     #Add the address to the trie       
-                    trie.add(contract_address.hex())
+                    SC_trie.add(contract_address.hex())
                     transaction['contractAddress'] = "0x" + contract_address.hex()
 
                     # call model parser
                     model1_parser.parse_contract_creation(transaction)
                     model2_parser.parse_contract_creation(transaction, block)
-                # # If there are logs in the transaction, it is a smart contract invocation
-                # elif 'logs' in transaction:
-                #     trie.add(to_address) # Add the destination address to the trie
-                #     model1_parser.parse_contract_transaction(transaction)
-                #     model2_parser.parse_contract_transaction(transaction, block)
 
-                # # It can be an EOA transaction or a smart contract invocation
-                # else:
-                #     is_contract_address = trie.find(to_address[2:])
-                #     if is_contract_address:
+                # If there are logs in the transaction, it is a smart contract invocation
+                elif 'logs' in transaction:
+                    SC_trie.add(to_address) # Add the destination address to the trie
+                    model1_parser.parse_contract_transaction(transaction)
+                    model2_parser.parse_contract_transaction(transaction, block)
 
+                # Check if it is a SC
+                elif SC_trie.find(to_address[2:]):
+                    model1_parser.parse_contract_transaction(transaction)
+                    model2_parser.parse_contract_transaction(transaction, block)
 
+                # Check if it is a EOA transaction
+                elif EOA_trie.find(to_address[2:]):
+                    model1_parser.parse_eoa_transaction(transaction)
+                    model2_parser.parse_eoa_transaction(transaction, block)
+                
+                # Otherwise is unknown
                 else:
-                    # Search the address in the trie (if present is is a smart contract invocation)
-                    tic = time.perf_counter()
-                    is_contract_address = trie.find(to_address[2:])
-                    trie_lookup += time.perf_counter() - tic
-                    
-                    if is_contract_address: 
-                        model1_parser.parse_contract_transaction(transaction)
-                        model2_parser.parse_contract_transaction(transaction, block)
-                    else:
-                        # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
+                    model1_parser.parse_unknown_transaction(transaction)
+                    model2_parser.parse_unknown_transaction(transaction, block)
 
-                        # If there are logs in the transaction it means it is a smart contract invocation
-                        if 'logs' in transaction:
-                            trie.add(to_address) # Add the destination address to the trie
-                            model1_parser.parse_contract_transaction(transaction)
-                            model2_parser.parse_contract_transaction(transaction, block)
+
+                # else:
+                #     # Search the address in the trie (if present is is a smart contract invocation)
+                #     tic = time.perf_counter()
+                #     is_contract_address = SM_trie.find(to_address[2:])
+                #     trie_lookup += time.perf_counter() - tic
+                    
+                #     if is_contract_address: 
+                #         model1_parser.parse_contract_transaction(transaction)
+                #         model2_parser.parse_contract_transaction(transaction, block)
+                #     else:
+                #         # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
+
+                #         # If there are logs in the transaction it means it is a smart contract invocation
+                #         if 'logs' in transaction:
+                #             SM_trie.add(to_address) # Add the destination address to the trie
+                #             model1_parser.parse_contract_transaction(transaction)
+                #             model2_parser.parse_contract_transaction(transaction, block)
                             
-                        else:
-                            model1_parser.parse_eoa_transaction(transaction)
-                            model2_parser.parse_eoa_transaction(transaction, block)
+                #         else:
+                #             model1_parser.parse_eoa_transaction(transaction)
+                #             model2_parser.parse_eoa_transaction(transaction, block)
 
 
     print(f'total trie lookup: {trie_lookup}s')
