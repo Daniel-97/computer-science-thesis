@@ -45,9 +45,7 @@ def main():
                 continue
 
             transactions = block.get("transactions", [])
-
-            if 'transactions' in block:
-                del block['transactions']
+            del block['transactions']
 
             model1_parser.parse_block(block=clean_block(block))
 
@@ -81,14 +79,9 @@ def main():
                     model1_parser.parse_contract_creation(transaction)
                     model2_parser.parse_contract_creation(transaction, block)
 
-                # If there are logs in the transaction, it is a smart contract invocation
-                elif 'logs' in transaction:
+                # If there are logs in the transaction, or is in the trie of SC is an SC
+                elif 'logs' in transaction or SC_trie.find(to_address[2:]):
                     SC_trie.add(to_address) # Add the destination address to the trie
-                    model1_parser.parse_contract_transaction(transaction)
-                    model2_parser.parse_contract_transaction(transaction, block)
-
-                # Check if it is a SC
-                elif SC_trie.find(to_address[2:]):
                     model1_parser.parse_contract_transaction(transaction)
                     model2_parser.parse_contract_transaction(transaction, block)
 
@@ -135,8 +128,8 @@ def clean_transaction(transaction: dict) -> dict:
 
     del transaction['chainId']
     del transaction['logsBloom']
-    del transaction['type']
-    del transaction['@type']
+    #del transaction['type']
+    #del transaction['@type']
     del transaction['v']
     del transaction['r']
     del transaction['s']
