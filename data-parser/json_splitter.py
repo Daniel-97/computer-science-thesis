@@ -2,10 +2,10 @@ import ijson
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
-import time
 from trie_hex import Trie
 from complex_model_parser import ComplexModelParser
 from simple_model_parser import SimpleModelParser
+from ethereum_client import EthereumClient
 
 from file_splitter_helper import FileSplitterHelper
 
@@ -20,14 +20,16 @@ def main():
     parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
     
+    # ETH CLIENT
+    eth_client = EthereumClient()
+    
+    # TRIE
     SC_trie = Trie("SC") # Trie for contract address
     EOA_trie = Trie("EOA") # Trie for EAO address
 
     # Model parser
     model1_parser = ComplexModelParser(args)
     model2_parser = SimpleModelParser(args)
-
-    trie_lookup = 0
 
     # Open the json file
     with open(args.input, "rb") as file: #todo, add support for gzip file
@@ -81,42 +83,35 @@ def main():
 
                 # If there are logs in the transaction, or is in the trie of SC is an SC
                 elif 'logs' in transaction or SC_trie.find(to_address[2:]):
-                    SC_trie.add(to_address) # Add the destination address to the trie
+                    SC_trie.add(to_address[2:]) # Add the destination address to the trie
                     model1_parser.parse_contract_transaction(transaction)
                     model2_parser.parse_contract_transaction(transaction, block)
 
-                # Check if it is a EOA transaction
                 elif EOA_trie.find(to_address[2:]):
                     model1_parser.parse_eoa_transaction(transaction)
                     model2_parser.parse_eoa_transaction(transaction, block)
-                
-                # Otherwise is unknown
-                else:
-                    model1_parser.parse_unknown_transaction(transaction)
-                    model2_parser.parse_unknown_transaction(transaction, block)
-
-
-                # else:
-                #     # Search the address in the trie (if present is is a smart contract invocation)
-                #     tic = time.perf_counter()
-                #     is_contract_address = SM_trie.find(to_address[2:])
-                #     trie_lookup += time.perf_counter() - tic
                     
-                #     if is_contract_address: 
-                #         model1_parser.parse_contract_transaction(transaction)
-                #         model2_parser.parse_contract_transaction(transaction, block)
-                #     else:
-                #         # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
+                #Unknown destination address, need to use eth client
+                else:
+                    print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
+                    if eth_client.is_contract(to_address):
+                        SC_trie.add(to_address[2:])
+                        model1_parser.parse_contract_transaction(transaction)
+                        model2_parser.parse_contract_transaction(transaction, block)
+                    else:
+                        EOA_trie.add(to_address[2:])
+                        model1_parser.parse_eoa_transaction(transaction)
+                        model2_parser.parse_eoa_transaction(transaction, block)
 
-                #         # If there are logs in the transaction it means it is a smart contract invocation
-                #         if 'logs' in transaction:
-                #             SM_trie.add(to_address) # Add the destination address to the trie
-                #             model1_parser.parse_contract_transaction(transaction)
-                #             model2_parser.parse_contract_transaction(transaction, block)
-                            
-                #         else:
-                #             model1_parser.parse_eoa_transaction(transaction)
-                #             model2_parser.parse_eoa_transaction(transaction, block)
+                # # Check if it is a EOA transaction
+                # elif EOA_trie.find(to_address[2:]):
+                #     model1_parser.parse_eoa_transaction(transaction)
+                #     model2_parser.parse_eoa_transaction(transaction, block)
+
+                # # Otherwise is unknown
+                # else:
+                #     model1_parser.parse_unknown_transaction(transaction)
+                #     model2_parser.parse_unknown_transaction(transaction, block)
 
     SC_trie.save_trie()
     EOA_trie.save_trie()
