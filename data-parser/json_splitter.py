@@ -6,6 +6,7 @@ from trie_hex import Trie
 from complex_model_parser import ComplexModelParser
 from simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
+import gzip
 
 def main():
 
@@ -24,7 +25,7 @@ def main():
     model2_parser = SimpleModelParser(args)
 
     # Open the json file
-    with open(args.input, "rb") as file: #todo, add support for gzip file
+    with gzip.open(args.input, "rb") as file:
 
         transaction_count = 0
         close = False
