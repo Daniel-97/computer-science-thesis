@@ -95,6 +95,7 @@ def main():
                         model1_parser.parse_eoa_transaction(transaction)
                         model2_parser.parse_eoa_transaction(transaction, block)
 
+    # Close operation
     SC_trie.save_trie()
     EOA_trie.save_trie()
     model1_parser.close_parser()
