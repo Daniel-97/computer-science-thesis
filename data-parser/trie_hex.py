@@ -1,5 +1,6 @@
 from typing import Tuple
 import pickle
+import bz2
 import os
 
 class Node:
@@ -17,18 +18,21 @@ class Trie():
 
     def __init__(self, name: str) -> None:
 
+        self.name = name
+
         # Load the binary class if present
-        if os.path.exists(f'trie_{name}.pickle'):
-            with open(f'trie_{name}.pickle', 'rb') as f:
+        if os.path.exists(self._trie_dump_file_name()):
+            with bz2.open(self._trie_dump_file_name(), 'rb') as f:
                 self.root = pickle.load(f)
-                print(f"Loaded {f.tell()} bytes from trie_{name}.pickle")
+                print(f"Loaded {f.tell()} bytes from {self._trie_dump_file_name()}")
         else:
             self.root = Node('')
-
-        self.name = name
-        
+    
+    def _trie_dump_file_name(self):
+        return f'trie_dump/trie_{self.name}.bz2'
+    
     def save_trie(self):
-        with open(f'trie_{self.name}.pickle', 'wb') as f:
+        with bz2.open(self._trie_dump_file_name(), 'wb') as f:
             pickle.dump(self.root,f,pickle.HIGHEST_PROTOCOL)
 
     def add(self, word: str) -> None: 

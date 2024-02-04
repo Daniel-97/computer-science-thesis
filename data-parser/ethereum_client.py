@@ -57,6 +57,7 @@ class EthereumClient:
             return True
 
         else:
+            print(f"No code found for {address}, calling eth_getAccount")
             account_response = self.eth_getAccount(address=address)
             
             # If no info are present in the latest block for the address, it means it is a SC self destructed
