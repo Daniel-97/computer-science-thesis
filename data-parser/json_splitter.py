@@ -20,8 +20,8 @@ def main():
     parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
     args = parser.parse_args()
     
-    SC_trie = Trie() # Trie for contract address
-    EOA_trie = Trie() # Trie for EAO address
+    SC_trie = Trie("SC") # Trie for contract address
+    EOA_trie = Trie("EOA") # Trie for EAO address
 
     # Model parser
     model1_parser = ComplexModelParser(args)
@@ -118,8 +118,8 @@ def main():
                 #             model1_parser.parse_eoa_transaction(transaction)
                 #             model2_parser.parse_eoa_transaction(transaction, block)
 
-
-    print(f'total trie lookup: {trie_lookup}s')
+    SC_trie.save_trie()
+    EOA_trie.save_trie()
     model1_parser.close_parser()
     model2_parser.close_parser()
 
