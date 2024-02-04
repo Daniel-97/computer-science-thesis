@@ -7,19 +7,11 @@ from complex_model_parser import ComplexModelParser
 from simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
 
-from file_splitter_helper import FileSplitterHelper
-
 def main():
 
-    # Simple argument parser
-    parser = ArgumentParser(description="json splitter CLI")
-    parser.add_argument('-i', '--input', required=True, help="Input file")
-    parser.add_argument('-o', '--output', required=True, help="Output folder")
-    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
-    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
-    args = parser.parse_args()
-    
+    # ARGS PARSER
+    args = init_arg_parser()
+
     # ETH CLIENT
     eth_client = EthereumClient()
     
@@ -27,7 +19,7 @@ def main():
     SC_trie = Trie("SC") # Trie for contract address
     EOA_trie = Trie("EOA") # Trie for EAO address
 
-    # Model parser
+    # MODELS PARSER
     model1_parser = ComplexModelParser(args)
     model2_parser = SimpleModelParser(args)
 
@@ -90,7 +82,7 @@ def main():
                 elif EOA_trie.find(to_address[2:]):
                     model1_parser.parse_eoa_transaction(transaction)
                     model2_parser.parse_eoa_transaction(transaction, block)
-                    
+
                 #Unknown destination address, need to use eth client
                 else:
                     print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
@@ -103,20 +95,11 @@ def main():
                         model1_parser.parse_eoa_transaction(transaction)
                         model2_parser.parse_eoa_transaction(transaction, block)
 
-                # # Check if it is a EOA transaction
-                # elif EOA_trie.find(to_address[2:]):
-                #     model1_parser.parse_eoa_transaction(transaction)
-                #     model2_parser.parse_eoa_transaction(transaction, block)
-
-                # # Otherwise is unknown
-                # else:
-                #     model1_parser.parse_unknown_transaction(transaction)
-                #     model2_parser.parse_unknown_transaction(transaction, block)
-
     SC_trie.save_trie()
     EOA_trie.save_trie()
     model1_parser.close_parser()
     model2_parser.close_parser()
+    print(f"eth_client tot_requests: {eth_client.tot_requests}, avg_time: {eth_client.avg_response_time} sec")
 
     
 def clean_transaction(transaction: dict) -> dict:
@@ -148,6 +131,17 @@ def clean_block(block: dict) -> dict:
     
 
     return block
+
+def init_arg_parser():
+    # Simple argument parser
+    parser = ArgumentParser(description="json splitter CLI")
+    parser.add_argument('-i', '--input', required=True, help="Input file")
+    parser.add_argument('-o', '--output', required=True, help="Output folder")
+    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
+    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
+    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
     main()
