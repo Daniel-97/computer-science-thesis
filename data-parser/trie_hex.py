@@ -21,18 +21,18 @@ class Trie():
         self.name = name
 
         # Load the binary class if present
-        if os.path.exists(self._trie_dump_file_name()):
-            with bz2.open(self._trie_dump_file_name(), 'rb') as f:
+        if os.path.exists(self._dump_file_name()):
+            with bz2.open(self._dump_file_name(), 'rb') as f:
                 self.root = pickle.load(f)
-                print(f"Loaded {f.tell()} bytes from {self._trie_dump_file_name()}")
+                print(f"Loaded {f.tell()} bytes from {self._dump_file_name()}")
         else:
             self.root = Node('')
     
-    def _trie_dump_file_name(self):
+    def _dump_file_name(self):
         return f'trie_dump/trie_{self.name}.bz2'
     
     def save_trie(self):
-        with bz2.open(self._trie_dump_file_name(), 'wb') as f:
+        with bz2.open(self._dump_file_name(), 'wb') as f:
             pickle.dump(self.root,f,pickle.HIGHEST_PROTOCOL)
 
     def add(self, word: str) -> None: 
