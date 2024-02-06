@@ -45,7 +45,8 @@ def main():
             model1_parser.parse_block(block=clean_block(block))
 
             for transaction in transactions:
-
+                
+                #print(f"Parsing transaction {transaction_count}\r", end="")
                 # Save the firsts args.block blocks, then exit
                 if args.transaction is not None and transaction_count >= args.transaction:
                     close = True
@@ -86,16 +87,25 @@ def main():
 
                 #Unknown destination address, need to use eth client
                 else:
-                    print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
-                    if eth_client.is_contract(to_address):
-                        SC_trie.add(to_address[2:])
-                        model1_parser.parse_contract_transaction(transaction)
-                        model2_parser.parse_contract_transaction(transaction, block)
-                    else:
-                        EOA_trie.add(to_address[2:])
-                        model1_parser.parse_eoa_transaction(transaction)
-                        model2_parser.parse_eoa_transaction(transaction, block)
 
+                    print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
+
+                    # If only heuristic is true, do not use local eth client for node classification
+                    if args.only_heuristic:
+                        model1_parser.parse_unknown_transaction(transaction)
+                        model2_parser.parse_unknown_transaction(transaction, block)
+
+                    else:
+                        if eth_client.is_contract(to_address):
+                            SC_trie.add(to_address[2:])
+                            model1_parser.parse_contract_transaction(transaction)
+                            model2_parser.parse_contract_transaction(transaction, block)
+                        else:
+                            EOA_trie.add(to_address[2:])
+                            model1_parser.parse_eoa_transaction(transaction)
+                            model2_parser.parse_eoa_transaction(transaction, block)
+
+    print(f"Total parsed transaction: ${transaction_count}, closing file...")
     # Close operation
     SC_trie.save_trie()
     EOA_trie.save_trie()
@@ -141,6 +151,7 @@ def init_arg_parser():
     parser.add_argument('-o', '--output', required=True, help="Output folder")
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
+    parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
     parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
 
     return parser.parse_args()
