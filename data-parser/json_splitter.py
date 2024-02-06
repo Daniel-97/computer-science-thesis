@@ -3,8 +3,8 @@ from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
 from trie_hex import Trie
-from complex_model_parser import ComplexModelParser
-from simple_model_parser import SimpleModelParser
+from model_parser.complex_model_parser import ComplexModelParser
+from model_parser.simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
 import gzip
 

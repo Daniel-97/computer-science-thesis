@@ -1,7 +1,7 @@
 from file_splitter_helper import FileSplitterHelper
-import json
+from abstract_model_parser import AbstractModelParser
 
-class ComplexModelParser:
+class ComplexModelParser(AbstractModelParser):
 
     def __init__(self, args) -> None:
         # Splitter
