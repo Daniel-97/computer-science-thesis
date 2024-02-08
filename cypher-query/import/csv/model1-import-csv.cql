@@ -116,4 +116,9 @@ call {
     WITH block
     MERGE (b: Block {hash: block.hash})
     set b = properties(block)
+
+    MERGE (parent: Block {hash: block.parentHash})
+
+    MERGE (b)-[:son_of]->(parent)
+
 } IN TRANSACTIONS OF 10000 ROWS;
