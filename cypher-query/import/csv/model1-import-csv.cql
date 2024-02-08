@@ -36,8 +36,8 @@ call {
     MERGE (t: Transaction {hash: transaction.hash})
     SET t = properties(transaction)
 
-    MERGE (fromNode: Account {address: transaction.fromAddress})
-    MERGE (toContract: SmartContract {address: transaction.contractAddress})
+    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
+    MERGE (toContract: Account {address: transaction.contractAddress, account_type: 'SC'})
     MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (fromNode)-[:sent]->(t)
@@ -54,8 +54,8 @@ call {
     MERGE (t: Transaction {hash: transaction.hash})
     SET t = properties(transaction)
 
-    MERGE (fromNode: Account {address: transaction.fromAddress})
-    MERGE (toContract: SmartContract {address: transaction.toAddress})
+    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
+    MERGE (toContract: Account {address: transaction.toAddress, account_type: 'SC'})
     MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (fromNode)-[:sent]->(t)
