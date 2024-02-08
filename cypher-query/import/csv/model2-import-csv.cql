@@ -85,7 +85,8 @@ call {
         WHEN toNode.account_type = "EOA" THEN "transfered"
         WHEN toNode.account_type = "SC"  THEN "invoked"
     END AS relationType
-    call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
+    //call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
+    call apoc.merge.relationship(fromNode,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
 
     SET rel = properties(transaction)
     SET rel.logs_index = SPLIT(transaction.logs_index,',')

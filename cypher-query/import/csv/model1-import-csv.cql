@@ -88,19 +88,21 @@ call {
     MERGE (fromNode: Account {address: transaction.fromAddress})
     ON CREATE
         SET fromNode.account_type = "EOA"
+    
     MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (toNode: Account {address: transaction.toAddress})
     ON CREATE
         SET toNode.account_type = "UNK"
 
-    WITH t, toNode,
+    WITH t, fromNode, toNode, block,
     CASE
         WHEN toNode.account_type = "UNK" THEN "to"
         WHEN toNode.account_type = "EOA" THEN "transfered"
         WHEN toNode.account_type = "SC"  THEN "invoked"
     END AS relationType
-    call apoc.create.relationship(t,relationType,{},toNode) YIELD rel
+    //call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
+    call apoc.merge.relationship(t,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
 
     // The from node relation is always sent
     MERGE (fromNode)-[:sent]->(t)
