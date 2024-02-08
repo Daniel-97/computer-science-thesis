@@ -12,7 +12,7 @@ call {
     MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
     MERGE (toNode: Account {address: transaction.toAddress, account_type: 'EOA'})
 
-    CREATE (fromNode)-[r:sent]->(toNode)
+    CREATE (fromNode)-[r:transfered]->(toNode)
     SET r = properties(transaction)
 } IN TRANSACTIONS OF 10000 ROWS;
 
@@ -20,7 +20,7 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/contract-creation/contract-creation-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (fromNome: Account {address: transaction.fromAddress, account_type: 'EOA'})
+    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
     MERGE (contract: Account {address: transaction.contractAddress, account_type: 'SC'})
 
     CREATE (fromNode)-[r:created]->(contract)
@@ -40,7 +40,7 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/contract-transactions/contract-transactions-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (fromNome: Account {address: transaction.fromAddress, account_type: 'EOA'})
+    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
     MERGE (contract: Account {address: transaction.toAddress, account_type: 'SC'})
 
     CREATE (fromNode)-[r:invoked]->(contract)
@@ -73,7 +73,6 @@ call {
     MERGE (fromNode: Account {address: transaction.fromAddress})
     ON CREATE
         SET fromNode.account_type = "EOA"
-    MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (toNode: Account {address: transaction.toAddress})
     ON CREATE
