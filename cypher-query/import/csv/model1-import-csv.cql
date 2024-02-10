@@ -123,7 +123,7 @@ call {
         WHEN toNode.account_type = "EOA" THEN "transfered"
         WHEN toNode.account_type = "SC"  THEN "invoked"
     END AS relationType
-    call apoc.create.relationship(fromNode, relationType, {}, toNode) YIELD rel
+    call apoc.create.relationship(t, relationType, {}, toNode) YIELD rel
     //call apoc.merge.relationship(t,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
 
     // The from node relation is always sent
