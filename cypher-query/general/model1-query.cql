@@ -17,3 +17,10 @@ LIMIT 100 // Limita ai nodi con il maggior numero di transazioni
 MATCH (n)-[*6]->(neighbor) // Espandi fino ai vicini dei vicini
 WHERE neighbor <> n and (neighbor: Account)// Assicurati che i vicini non siano i nodi stessi
 RETURN count (distinct neighbor);
+
+
+match (a:Account {address: '0xfffbca3a38c3c5fcb3adbb8e63c04c3e629aafce'})
+MATCH (a)-[*6]->(neighbor: Account {account_type: 'EOA'})
+where a<>neighbor
+return neighbor
+order by neighbor.address DESC

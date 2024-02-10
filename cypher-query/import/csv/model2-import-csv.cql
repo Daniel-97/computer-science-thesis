@@ -1,5 +1,5 @@
 // USE FOR DELETE
-:auto match (n) call {with n detach delete n} in transactions of 10000 rows;
+:auto match (n) call {with n detach delete n} in transactions of 100 rows;
 
 // CONSTRAINT
 CREATE CONSTRAINT IF NOT EXISTS FOR (a: Account) REQUIRE a.address IS UNIQUE;
@@ -9,8 +9,15 @@ CREATE CONSTRAINT IF NOT EXISTS FOR (contract: SmartContract) REQUIRE contract.a
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/eoa-transactions/eoa-transactions-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
-    MERGE (toNode: Account {address: transaction.toAddress, account_type: 'EOA'})
+
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE 
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (toNode: Account {address: transaction.toAddress})
+    ON CREATE
+        SET toNode.account_type = 'EOA'
+
 
     CREATE (fromNode)-[r:transfered]->(toNode)
     SET r = properties(transaction)
@@ -20,8 +27,14 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/contract-creation/contract-creation-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
-    MERGE (contract: Account {address: transaction.contractAddress, account_type: 'SC'})
+
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (contract: Account {address: transaction.contractAddress})
+    ON CREATE
+        SET contract.account_type = 'SC'
 
     CREATE (fromNode)-[r:created]->(contract)
     SET r = properties(transaction)
@@ -40,8 +53,14 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model2-data/contract-transactions/contract-transactions-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
-    MERGE (contract: Account {address: transaction.toAddress, account_type: 'SC'})
+
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE 
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (contract: Account {address: transaction.toAddress})
+    ON CREATE 
+        SET contract.account_type = 'SC'
 
     CREATE (fromNode)-[r:invoked]->(contract)
     SET r = properties(transaction)
@@ -84,8 +103,8 @@ call {
         WHEN toNode.account_type = "EOA" THEN "transfered"
         WHEN toNode.account_type = "SC"  THEN "invoked"
     END AS relationType
-    //call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
-    call apoc.merge.relationship(fromNode,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
+    call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
+    //call apoc.merge.relationship(fromNode,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
 
     SET rel = properties(transaction)
     SET rel.logs_index = SPLIT(transaction.logs_index,',')
@@ -98,7 +117,7 @@ call {
     SET rel.logs_transaction_hash = SPLIT(transaction.logs_transaction_hash,',')
     SET rel.logs_topic = SPLIT(transaction.logs_topic,',')
 
-} IN TRANSACTIONS OF 10000 ROWS;
+} IN TRANSACTIONS OF 1000 ROWS;
 
 
 

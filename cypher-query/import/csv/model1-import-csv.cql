@@ -13,12 +13,19 @@ CREATE CONSTRAINT IF NOT EXISTS FOR (contract: SmartContract) REQUIRE contract.a
 call {
     WITH transaction
     // Create the transaction
-    CREATE (t:Transaction {hash: transaction.hash})
-    SET t = properties(transaction)
+    MERGE (t:Transaction {hash: transaction.hash})
+    ON CREATE
+        SET t = properties(transaction)
 
     // Create the node
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: "EOA"})
-    MERGE (toNode: Account {address: transaction.toAddress, account_type: "EOA"})
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE 
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (toNode: Account {address: transaction.toAddress})
+    ON CREATE 
+        SET toNode.account_type = 'EOA'
+        
     MERGE (block: Block {hash: transaction.blockHash})
 
     // Create the relation
@@ -33,11 +40,17 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model1-data/contract-creation/contract-creation-1.csv" AS transaction
 call {
     WITH transaction
-    MERGE (t: Transaction {hash: transaction.hash})
+    CREATE (t: Transaction {hash: transaction.hash})
     SET t = properties(transaction)
 
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
-    MERGE (toContract: Account {address: transaction.contractAddress, account_type: 'SC'})
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (toContract: Account {address: transaction.contractAddress})
+    ON CREATE
+        SET toContract.account_type = 'SC'
+
     MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (fromNode)-[:sent]->(t)
@@ -52,10 +65,17 @@ call {
 call {
     WITH transaction
     MERGE (t: Transaction {hash: transaction.hash})
-    SET t = properties(transaction)
+    ON CREATE
+        SET t = properties(transaction)
 
-    MERGE (fromNode: Account {address: transaction.fromAddress, account_type: 'EOA'})
-    MERGE (toContract: Account {address: transaction.toAddress, account_type: 'SC'})
+    MERGE (fromNode: Account {address: transaction.fromAddress})
+    ON CREATE
+        SET fromNode.account_type = 'EOA'
+
+    MERGE (toContract: Account {address: transaction.toAddress})
+    ON CREATE
+        SET toContract.account_type = 'SC'
+
     MERGE (block: Block {hash: transaction.blockHash})
 
     MERGE (fromNode)-[:sent]->(t)
@@ -82,8 +102,10 @@ call {
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model1-data/unknown-transactions/unknown-transactions-1.csv" AS transaction
 call {
     WITH transaction
+
     MERGE (t: Transaction {hash: transaction.hash})
-    SET t = properties(transaction)
+    ON CREATE
+        SET t = properties(transaction)
 
     MERGE (fromNode: Account {address: transaction.fromAddress})
     ON CREATE
@@ -101,8 +123,8 @@ call {
         WHEN toNode.account_type = "EOA" THEN "transfered"
         WHEN toNode.account_type = "SC"  THEN "invoked"
     END AS relationType
-    //call apoc.create.relationship(fromNode,relationType,{},toNode) YIELD rel
-    call apoc.merge.relationship(t,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
+    call apoc.create.relationship(fromNode, relationType, {}, toNode) YIELD rel
+    //call apoc.merge.relationship(t,relationType,{},{},toNode,{}) YIELD rel // Avoid to create multiple times same relationship
 
     // The from node relation is always sent
     MERGE (fromNode)-[:sent]->(t)
