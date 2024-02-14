@@ -1,6 +1,6 @@
 // Projeted graph
 match (from: Account)-[:transfered]->(to: Account)
-with gds.graph.project('projected_transfer', from, to) as g
+with gds.graph.project('transfer', from, to) as g
 return g.graphName as graph, g.nodeCount as nodes, g.relationshipCount as rels
 
 match (from: Account)-[:invoked]->(to: Account)
