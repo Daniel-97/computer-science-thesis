@@ -1,7 +1,7 @@
 from file_splitter_helper import FileSplitterHelper
-import json
+from abstract_model_parser import AbstractModelParser
 
-class SimpleModelParser:
+class SimpleModelParser(AbstractModelParser):
 
     def __init__(self, args) -> None:
         out_folder = f'{args.output}/model2-data'
@@ -10,6 +10,9 @@ class SimpleModelParser:
         self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
         self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, args.size, args.format)
 
+    def parse_block(self, block: dict):
+        pass
+    
     def parse_eoa_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
@@ -46,7 +49,7 @@ class SimpleModelParser:
         self._contract_creation_splitter.end_file()
         self._unknown_transaction_splitter.end_file()
 
-        print("Model 2 (simple) stats:")
+        print("\nModel 2 (simple) stats:")
         print("- total EOA transactions: ", self._eoa_transaction_splitter.total_row_saved)
         print("- total contract transactions: ", self._contract_transaction_splitter.total_row_saved)
         print("- total contract creation transactions: ", self._contract_creation_splitter.total_row_saved)

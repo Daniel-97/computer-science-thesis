@@ -2,61 +2,62 @@ import ijson
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
-import time
 from trie_hex import Trie
-from complex_model_parser import ComplexModelParser
-from simple_model_parser import SimpleModelParser
-
-from file_splitter_helper import FileSplitterHelper
+from model_parser.complex_model_parser import ComplexModelParser
+from model_parser.simple_model_parser import SimpleModelParser
+from ethereum_client import EthereumClient
+import gzip
 
 def main():
 
-    # Simple argument parser
-    parser = ArgumentParser(description="json splitter CLI")
-    parser.add_argument('-i', '--input', required=True, help="Input file")
-    parser.add_argument('-o', '--output', required=True, help="Output folder")
-    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
-    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
-    args = parser.parse_args()
-    
-    SC_trie = Trie() # Trie for contract address
-    EOA_trie = Trie() # Trie for EAO address
+    # ARGS PARSER
+    args = init_arg_parser()
 
-    # Model parser
+    # ETH CLIENT
+    eth_client = EthereumClient()
+    
+    # TRIE
+    SC_trie = Trie("SC") # Trie for contract address
+    EOA_trie = Trie("EOA") # Trie for EAO address
+
+    # MODELS PARSER
     model1_parser = ComplexModelParser(args)
     model2_parser = SimpleModelParser(args)
 
-    trie_lookup = 0
-
     # Open the json file
-    with open(args.input, "rb") as file: #todo, add support for gzip file
+    with gzip.open(args.input, "rb") as file:
 
         transaction_count = 0
         close = False
+        parse_block = False
+        start_block = '0x0' if args.start_block is None else args.start_block
+        end_block = None if args.end_block is None else args.end_block
+
         # Loop through the array
         for block in ijson.items(file, "item"):
-
+            
             if close:
                 break
+            
+            # Start parsing data from the start_block number
+            if not parse_block and block['number'] == start_block:
+                parse_block = True
+
+            # Parse until end_block is reached
+            if end_block is not None and block['number'] == end_block:
+                close = True
 
             # Skip block with zero transaction
             if "transactions" not in block:
                 continue
 
             transactions = block.get("transactions", [])
-
-            if 'transactions' in block:
-                del block['transactions']
-
-            model1_parser.parse_block(block=clean_block(block))
+            del block['transactions']
+            
+            if parse_block:
+                model1_parser.parse_block(block=clean_block(block))
 
             for transaction in transactions:
-
-                # Save the firsts args.block blocks, then exit
-                if args.transaction is not None and transaction_count >= args.transaction:
-                    close = True
-                    break
                 
                 transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
@@ -78,65 +79,63 @@ def main():
                     transaction['contractAddress'] = "0x" + contract_address.hex()
 
                     # call model parser
-                    model1_parser.parse_contract_creation(transaction)
-                    model2_parser.parse_contract_creation(transaction, block)
+                    if parse_block:
+                        model1_parser.parse_contract_creation(transaction)
+                        model2_parser.parse_contract_creation(transaction, block)
 
-                # If there are logs in the transaction, it is a smart contract invocation
-                elif 'logs' in transaction:
-                    SC_trie.add(to_address) # Add the destination address to the trie
-                    model1_parser.parse_contract_transaction(transaction)
-                    model2_parser.parse_contract_transaction(transaction, block)
+                # If there are logs in the transaction, or is in the trie of SC is an SC
+                elif 'logs' in transaction or SC_trie.find(to_address[2:]):
+                    SC_trie.add(to_address[2:]) # Add the destination address to the trie
+                    if parse_block:
+                        model1_parser.parse_contract_transaction(transaction)
+                        model2_parser.parse_contract_transaction(transaction, block)
 
-                # Check if it is a SC
-                elif SC_trie.find(to_address[2:]):
-                    model1_parser.parse_contract_transaction(transaction)
-                    model2_parser.parse_contract_transaction(transaction, block)
-
-                # Check if it is a EOA transaction
                 elif EOA_trie.find(to_address[2:]):
-                    model1_parser.parse_eoa_transaction(transaction)
-                    model2_parser.parse_eoa_transaction(transaction, block)
-                
-                # Otherwise is unknown
+
+                    if parse_block:
+                        model1_parser.parse_eoa_transaction(transaction)
+                        model2_parser.parse_eoa_transaction(transaction, block)
+
+                #Unknown destination address, need to use eth client
                 else:
-                    model1_parser.parse_unknown_transaction(transaction)
-                    model2_parser.parse_unknown_transaction(transaction, block)
 
+                    #print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
 
-                # else:
-                #     # Search the address in the trie (if present is is a smart contract invocation)
-                #     tic = time.perf_counter()
-                #     is_contract_address = SM_trie.find(to_address[2:])
-                #     trie_lookup += time.perf_counter() - tic
-                    
-                #     if is_contract_address: 
-                #         model1_parser.parse_contract_transaction(transaction)
-                #         model2_parser.parse_contract_transaction(transaction, block)
-                #     else:
-                #         # Here the transaction can still be a smart contract invocation (smart contract created by other smart contract)
+                    # If only heuristic is true, do not use local eth client for node classification
+                    if args.only_heuristic:
 
-                #         # If there are logs in the transaction it means it is a smart contract invocation
-                #         if 'logs' in transaction:
-                #             SM_trie.add(to_address) # Add the destination address to the trie
-                #             model1_parser.parse_contract_transaction(transaction)
-                #             model2_parser.parse_contract_transaction(transaction, block)
-                            
-                #         else:
-                #             model1_parser.parse_eoa_transaction(transaction)
-                #             model2_parser.parse_eoa_transaction(transaction, block)
+                        if parse_block:
+                            model1_parser.parse_unknown_transaction(transaction)
+                            model2_parser.parse_unknown_transaction(transaction, block)
 
+                    else:
 
-    print(f'total trie lookup: {trie_lookup}s')
+                        if eth_client.is_contract(to_address):
+                            SC_trie.add(to_address[2:])
+                            if parse_block:
+                                model1_parser.parse_contract_transaction(transaction)
+                                model2_parser.parse_contract_transaction(transaction, block)
+                        else:
+                            EOA_trie.add(to_address[2:])
+                            if parse_block:
+                                model1_parser.parse_eoa_transaction(transaction)
+                                model2_parser.parse_eoa_transaction(transaction, block)
+
+    print(f"Parsed from block {start_block} to block {end_block}, tot. parsed transaction: {transaction_count}")
+    # Close operation
+    SC_trie.save_trie()
+    EOA_trie.save_trie()
     model1_parser.close_parser()
     model2_parser.close_parser()
+    print(f"eth_client tot_requests: {eth_client.tot_requests}, avg_time: {eth_client.avg_response_time} sec")
 
     
 def clean_transaction(transaction: dict) -> dict:
 
     del transaction['chainId']
     del transaction['logsBloom']
-    del transaction['type']
-    del transaction['@type']
+    #del transaction['type']
+    #del transaction['@type']
     del transaction['v']
     del transaction['r']
     del transaction['s']
@@ -160,6 +159,19 @@ def clean_block(block: dict) -> dict:
     
 
     return block
+
+def init_arg_parser():
+    # Simple argument parser
+    parser = ArgumentParser(description="json splitter CLI")
+    parser.add_argument('-i', '--input', required=True, help="Input file")
+    parser.add_argument('-o', '--output', required=True, help="Output folder")
+    parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
+    parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
+    parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
+    parser.add_argument('-sb','--start-block', required=False, help="Start block number") # Start parsing from the specified block (included)
+    parser.add_argument('-eb', '--end-block', required=False, help="End block number") # End parsing to this block number (included)
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
     main()
