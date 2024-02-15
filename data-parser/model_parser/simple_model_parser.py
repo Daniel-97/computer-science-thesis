@@ -49,7 +49,7 @@ class SimpleModelParser(AbstractModelParser):
         self._contract_creation_splitter.end_file()
         self._unknown_transaction_splitter.end_file()
 
-        print("Model 2 (simple) stats:")
+        print("\nModel 2 (simple) stats:")
         print("- total EOA transactions: ", self._eoa_transaction_splitter.total_row_saved)
         print("- total contract transactions: ", self._contract_transaction_splitter.total_row_saved)
         print("- total contract creation transactions: ", self._contract_creation_splitter.total_row_saved)

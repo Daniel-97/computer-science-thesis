@@ -29,11 +29,23 @@ def main():
 
         transaction_count = 0
         close = False
+        parse_block = False
+        start_block = '0x0' if args.start_block is None else args.start_block
+        end_block = None if args.end_block is None else args.end_block
+
         # Loop through the array
         for block in ijson.items(file, "item"):
-
+            
             if close:
                 break
+            
+            # Start parsing data from the start_block number
+            if not parse_block and block['number'] == start_block:
+                parse_block = True
+
+            # Parse until end_block is reached
+            if end_block is not None and block['number'] == end_block:
+                close = True
 
             # Skip block with zero transaction
             if "transactions" not in block:
@@ -41,16 +53,11 @@ def main():
 
             transactions = block.get("transactions", [])
             del block['transactions']
-
-            model1_parser.parse_block(block=clean_block(block))
+            
+            if parse_block:
+                model1_parser.parse_block(block=clean_block(block))
 
             for transaction in transactions:
-                
-                #print(f"Parsing transaction {transaction_count}\r", end="")
-                # Save the firsts args.block blocks, then exit
-                if args.transaction is not None and transaction_count >= args.transaction:
-                    close = True
-                    break
                 
                 transaction_count += 1
                 transaction = clean_transaction(transaction=transaction)
@@ -72,40 +79,49 @@ def main():
                     transaction['contractAddress'] = "0x" + contract_address.hex()
 
                     # call model parser
-                    model1_parser.parse_contract_creation(transaction)
-                    model2_parser.parse_contract_creation(transaction, block)
+                    if parse_block:
+                        model1_parser.parse_contract_creation(transaction)
+                        model2_parser.parse_contract_creation(transaction, block)
 
                 # If there are logs in the transaction, or is in the trie of SC is an SC
                 elif 'logs' in transaction or SC_trie.find(to_address[2:]):
                     SC_trie.add(to_address[2:]) # Add the destination address to the trie
-                    model1_parser.parse_contract_transaction(transaction)
-                    model2_parser.parse_contract_transaction(transaction, block)
+                    if parse_block:
+                        model1_parser.parse_contract_transaction(transaction)
+                        model2_parser.parse_contract_transaction(transaction, block)
 
                 elif EOA_trie.find(to_address[2:]):
-                    model1_parser.parse_eoa_transaction(transaction)
-                    model2_parser.parse_eoa_transaction(transaction, block)
+
+                    if parse_block:
+                        model1_parser.parse_eoa_transaction(transaction)
+                        model2_parser.parse_eoa_transaction(transaction, block)
 
                 #Unknown destination address, need to use eth client
                 else:
 
-                    print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
+                    #print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
 
                     # If only heuristic is true, do not use local eth client for node classification
                     if args.only_heuristic:
-                        model1_parser.parse_unknown_transaction(transaction)
-                        model2_parser.parse_unknown_transaction(transaction, block)
+
+                        if parse_block:
+                            model1_parser.parse_unknown_transaction(transaction)
+                            model2_parser.parse_unknown_transaction(transaction, block)
 
                     else:
+
                         if eth_client.is_contract(to_address):
                             SC_trie.add(to_address[2:])
-                            model1_parser.parse_contract_transaction(transaction)
-                            model2_parser.parse_contract_transaction(transaction, block)
+                            if parse_block:
+                                model1_parser.parse_contract_transaction(transaction)
+                                model2_parser.parse_contract_transaction(transaction, block)
                         else:
                             EOA_trie.add(to_address[2:])
-                            model1_parser.parse_eoa_transaction(transaction)
-                            model2_parser.parse_eoa_transaction(transaction, block)
+                            if parse_block:
+                                model1_parser.parse_eoa_transaction(transaction)
+                                model2_parser.parse_eoa_transaction(transaction, block)
 
-    print(f"Total parsed transaction: {transaction_count}, closing file...")
+    print(f"Parsed from block {start_block} to block {end_block}, tot. parsed transaction: {transaction_count}")
     # Close operation
     SC_trie.save_trie()
     EOA_trie.save_trie()
@@ -152,7 +168,8 @@ def init_arg_parser():
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
-    parser.add_argument('-t','--transaction', required=False, help="Number of transaction to save", type=int)
+    parser.add_argument('-sb','--start-block', required=False, help="Start block number") # Start parsing from the specified block (included)
+    parser.add_argument('-eb', '--end-block', required=False, help="End block number") # End parsing to this block number (included)
 
     return parser.parse_args()
 

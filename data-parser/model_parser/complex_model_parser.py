@@ -55,7 +55,7 @@ class ComplexModelParser(AbstractModelParser):
         self._log_splitter.end_file()
         self._unknown_transaction_splitter.end_file()
 
-        print("Model 1 (complex) stats:")
+        print("\nModel 1 (complex) stats:")
         print("- total blocks: ", self._block_splitter.total_row_saved)
         print("- total EOA transactions: ", self._eoa_transaction_splitter.total_row_saved)
         print("- total contract transactions: ", self._contract_transaction_splitter.total_row_saved)
