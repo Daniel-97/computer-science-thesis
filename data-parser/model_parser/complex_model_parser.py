@@ -3,15 +3,15 @@ from abstract_model_parser import AbstractModelParser
 
 class ComplexModelParser(AbstractModelParser):
 
-    def __init__(self, args) -> None:
+    def __init__(self, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         # Splitter
-        out_folder = f'{args.output}/model1-data'
-        self._block_splitter = FileSplitterHelper('blocks', out_folder, args.size, args.format)
-        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size, args.format)
-        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size, args.format)
-        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
-        self._log_splitter = FileSplitterHelper('contract-logs', out_folder, args.size, args.format)
-        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, args.size, args.format)
+        out_folder = f'{output_folder}/model1-data'
+        self._block_splitter = FileSplitterHelper('blocks', out_folder, max_file_size_mb, file_format)
+        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, max_file_size_mb, file_format)
+        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, max_file_size_mb, file_format)
+        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, max_file_size_mb, file_format)
+        self._log_splitter = FileSplitterHelper('contract-logs', out_folder, max_file_size_mb, file_format)
+        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         self._block_splitter.append(element=block)
