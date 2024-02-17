@@ -13,16 +13,13 @@ class EthereumJsonParser:
 
     def __init__(
             self,
-            input_folder: str,
             output_folder: str,
             max_file_size_mb: int,
             file_format: str,
             only_heuristic: bool,
         ):
 
-        # TODO: should the parameter be in the the constructor?
         # PARAMETERS
-        self.input_folder = input_folder
         self.file_format = file_format
         self.only_heuristic = only_heuristic
 
@@ -40,33 +37,33 @@ class EthereumJsonParser:
         # STATS
         self.parsed_transaction = 0
     
-    def start_parse(self, start_block: str, end_block: str):
+    # def start_parse(self, start_block: str, end_block: str):
         
-        # BLOCKS NUMBER
-        start_block = '0x0' if start_block is None else start_block
-        end_block = None if end_block is None else end_block
+    #     # BLOCKS NUMBER
+    #     start_block = '0x0' if start_block is None else start_block
+    #     end_block = None if end_block is None else end_block
 
-        # Parse all the input files
-        files = []
-        for file_name in os.listdir(self.input_folder):
-            if 'dump' in file_name: 
-                files.append(f'{self.input_folder}/{file_name}')
-        files.sort()
+    #     # Parse all the input files
+    #     files = []
+    #     for file_name in os.listdir(self.input_folder):
+    #         if 'dump' in file_name: 
+    #             files.append(f'{self.input_folder}/{file_name}')
+    #     files.sort()
 
-        for file_path in files:
-            print(f'Start parsing file {file_path}')
-            parsed_transaction = self.parse_file(file_path, start_block, end_block)
-            self.parsed_transaction += parsed_transaction
-            print(f'Parsed {parsed_transaction} transaction')
-
-        print(f"Parsed from block {start_block} to block {end_block}, tot. parsed transaction: {self.parsed_transaction}")
-        # Close operation
+    #     for file_path in files:
+    #         print(f'Start parsing file {file_path}')
+    #         parsed_transaction = self.parse_file(file_path, start_block, end_block)
+    #         self.parsed_transaction += parsed_transaction
+    #         print(f'Parsed {parsed_transaction} transaction')
+    
+    def close(self):
+        print(f"Tot. parsed transaction: {self.parsed_transaction}")
         self.SC_trie.save_trie()
         self.EOA_trie.save_trie()
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time: {self.eth_client.avg_response_time} sec")
-    
+
     def clean_transaction(self, transaction: dict) -> dict:
 
         del transaction['chainId']
@@ -96,16 +93,17 @@ class EthereumJsonParser:
         
         return block
 
-    def parse_file(self, file_path: str, start_block: str, end_block: str) -> int:
+    def parse_file(self, file_path: str, start_block: int, end_block: int):
 
-        parsed_transaction = 0
-
+        file_name = file_path.split('/')[-1]
+        print(f'Start parsing file {file_name} from block {start_block} to block {end_block}')
         with gzip.open(file_path, "rb") as file:
 
             close = False
             parse_block = False
-            start_block = '0x0' if start_block is None else start_block
-            
+            start_block_hex = '0x0' if start_block is None else hex(start_block)
+            end_block_hex = None if end_block is None else hex(end_block)
+
             # Loop through the array
             for block in ijson.items(file, "item"):
                 
@@ -113,11 +111,11 @@ class EthereumJsonParser:
                     break
                 
                 # Start parsing data from the start_block number
-                if not parse_block and block['number'] == start_block:
+                if not parse_block and block['number'] == start_block_hex:
                     parse_block = True
 
                 # Parse until end_block is reached
-                if end_block is not None and block['number'] == end_block:
+                if end_block_hex is not None and block['number'] == end_block_hex:
                     close = True
 
                 # Skip block with zero transaction
@@ -131,8 +129,7 @@ class EthereumJsonParser:
                     self.model1_parser.parse_block(block=self.clean_block(block))
 
                 for transaction in transactions:
-                    
-                    parsed_transaction += 1
+                    self.parsed_transaction += 1
                     transaction = self.clean_transaction(transaction=transaction)
 
                     to_address = transaction.get('toAddress')
@@ -176,7 +173,6 @@ class EthereumJsonParser:
 
                         # If only heuristic is true, do not use local eth client for node classification
                         if self.only_heuristic:
-
                             if parse_block:
                                 self.model1_parser.parse_unknown_transaction(transaction)
                                 self.model2_parser.parse_unknown_transaction(transaction, block)
@@ -194,23 +190,20 @@ class EthereumJsonParser:
                                     self.model1_parser.parse_eoa_transaction(transaction)
                                     self.model2_parser.parse_eoa_transaction(transaction, block)
 
-        return parsed_transaction
-
 if __name__ == "__main__":
     # Simple argument parser
     parser = ArgumentParser(description="json splitter CLI")
-    parser.add_argument('-i', '--input', required=True, help="Input folder", type=str)
+    parser.add_argument('-i', '--input', required=True, help="Input file", type=str)
     parser.add_argument('-o', '--output', required=True, help="Output folder", type=str)
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
-    parser.add_argument('-sb','--start-block', required=False, help="Start block number") # Start parsing from the specified block (included)
-    parser.add_argument('-eb', '--end-block', required=False, help="End block number") # End parsing to this block number (included)
+    parser.add_argument('-sb','--start-block', required=False, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
+    parser.add_argument('-eb', '--end-block', required=False, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
 
     # Init ethereum json parser
     ethereum_parser = EthereumJsonParser(
-        input_folder=args.input,
         output_folder=args.output,
         max_file_size_mb=args.size,
         file_format=args.format,
@@ -218,7 +211,10 @@ if __name__ == "__main__":
     )
 
     # Start parsing
-    ethereum_parser.start_parse(
+    ethereum_parser.parse_file(
+        file_path=args.input,
         start_block=args.start_block,
         end_block=args.end_block
     )
+
+    ethereum_parser.close()
