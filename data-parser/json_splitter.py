@@ -7,7 +7,6 @@ from model_parser.complex_model_parser import ComplexModelParser
 from model_parser.simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
 import gzip
-import os
 
 class EthereumJsonParser:
 
@@ -62,7 +61,8 @@ class EthereumJsonParser:
         self.EOA_trie.save_trie()
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
-        print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time: {self.eth_client.avg_response_time} sec")
+        print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
+        print(f'Trie lookup time(sec): SC {self.SC_trie.lookup_time}, EOA: {self.EOA_trie.lookup_time}')
 
     def clean_transaction(self, transaction: dict) -> dict:
 
@@ -101,8 +101,8 @@ class EthereumJsonParser:
 
             close = False
             parse_block = False
-            start_block_hex = '0x0' if start_block is None else hex(start_block)
-            end_block_hex = None if end_block is None else hex(end_block)
+            start_block_hex = hex(start_block)
+            end_block_hex = hex(end_block)
 
             # Loop through the array
             for block in ijson.items(file, "item"):
@@ -198,8 +198,8 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
-    parser.add_argument('-sb','--start-block', required=False, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
-    parser.add_argument('-eb', '--end-block', required=False, help="End block number (integer)", type=int) # End parsing to this block number (included)
+    parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
+    parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
 
     # Init ethereum json parser
