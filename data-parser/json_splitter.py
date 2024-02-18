@@ -36,25 +36,6 @@ class EthereumJsonParser:
         # STATS
         self.parsed_transaction = 0
     
-    # def start_parse(self, start_block: str, end_block: str):
-        
-    #     # BLOCKS NUMBER
-    #     start_block = '0x0' if start_block is None else start_block
-    #     end_block = None if end_block is None else end_block
-
-    #     # Parse all the input files
-    #     files = []
-    #     for file_name in os.listdir(self.input_folder):
-    #         if 'dump' in file_name: 
-    #             files.append(f'{self.input_folder}/{file_name}')
-    #     files.sort()
-
-    #     for file_path in files:
-    #         print(f'Start parsing file {file_path}')
-    #         parsed_transaction = self.parse_file(file_path, start_block, end_block)
-    #         self.parsed_transaction += parsed_transaction
-    #         print(f'Parsed {parsed_transaction} transaction')
-    
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
         self.SC_trie.save_trie()
@@ -80,8 +61,6 @@ class EthereumJsonParser:
         del transaction['to']
         del transaction['from']
 
-        return transaction
-
     def clean_block(self, block: dict) -> dict:
         del block['logsBloom']
         if "ommers" in block:
@@ -91,8 +70,22 @@ class EthereumJsonParser:
             block["minerAddress"] = block.get("miner").get("address")
             del block["miner"]
         
-        return block
+    def convert_block_field(self, block: dict) -> dict:
+        self.convert_filed(block, 'number')
+        self.convert_filed(block, 'gasLimit')
+        self.convert_filed(block, 'gasUsed')
+        self.convert_filed(block, 'timestamp')
 
+    def convert_transaction_field(self, transaction: dict) -> dict:
+        self.convert_filed(transaction, 'gas')
+        self.convert_filed(transaction, 'gasPrice')
+        self.convert_filed(transaction, 'gasUsed')
+        self.convert_filed(transaction, 'value')
+
+    def convert_filed(self, dict: dict, field_name: str) -> int:
+        if field_name in dict:
+            dict[field_name] = int(dict[field_name],16)
+    
     def parse_file(self, file_path: str, start_block: int, end_block: int):
 
         file_name = file_path.split('/')[-1]
@@ -126,11 +119,14 @@ class EthereumJsonParser:
                 del block['transactions']
                 
                 if parse_block:
-                    self.model1_parser.parse_block(block=self.clean_block(block))
+                    self.clean_block(block)
+                    self.convert_block_field(block)
+                    self.model1_parser.parse_block(block)
 
                 for transaction in transactions:
                     self.parsed_transaction += 1
-                    transaction = self.clean_transaction(transaction=transaction)
+                    self.clean_transaction(transaction)
+                    self.convert_transaction_field(transaction)
 
                     to_address = transaction.get('toAddress')
                     from_address = transaction.get('fromAddress')
