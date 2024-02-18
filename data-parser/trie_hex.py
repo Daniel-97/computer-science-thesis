@@ -4,7 +4,6 @@ import os
 import time
 import pickle as cPickle
 import gc
-
 class Node:
 
     char: str
@@ -12,7 +11,7 @@ class Node:
     def __init__(self, char: str) -> None:
         self.char = char
         self.children: list[Node] = []
-        self.count = 1
+        #self.count = 1
 
 class Trie():
 
@@ -28,7 +27,7 @@ class Trie():
             gc.disable()
             with bz2.open(self._dump_file_name(), 'rb') as f:
                 self.root = cPickle.load(f)
-                print(f"Loaded {f.tell()} bytes from {self._dump_file_name()}")
+                print(f"Loaded {f.tell()/1000/1000} MB from {self._dump_file_name()}")
             gc.enable()
         else:
             self.root = Node('')
@@ -56,33 +55,13 @@ class Trie():
                 if child.char == char:
                     node = child
                     found_in_child = True
-                    child.count += 1
+                    #child.count += 1
                     break
 
             if not found_in_child:
                 new_child = Node(char)
                 node.children.append(new_child)
                 node = new_child
-
-    def find_prefix(self, prefix: str) -> Tuple[bool, int]:
-
-        node = self.root
-
-        if not node.children:
-            return False, 0
-        
-        for char in prefix:
-            char_found = False
-            for child in node.children:
-                if child.char == char:
-                    node = child
-                    char_found = True
-                    break
-
-            if not char_found:
-                return False, 0
-            
-        return True, node.count
     
     def find(self, word: str) -> bool:
 
