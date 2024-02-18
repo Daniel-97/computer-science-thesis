@@ -3,12 +3,12 @@ from abstract_model_parser import AbstractModelParser
 
 class SimpleModelParser(AbstractModelParser):
 
-    def __init__(self, args) -> None:
-        out_folder = f'{args.output}/model2-data'
-        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, args.size, args.format)
-        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, args.size, args.format)
-        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, args.size, args.format)
-        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, args.size, args.format)
+    def __init__(self, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
+        out_folder = f'{output_folder}/model2-data'
+        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, max_file_size_mb, file_format)
+        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, max_file_size_mb, file_format)
+        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, max_file_size_mb, file_format)
+        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         pass
