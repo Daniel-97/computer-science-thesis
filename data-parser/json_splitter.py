@@ -45,12 +45,11 @@ class EthereumJsonParser:
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
         print(f'Trie lookup time(sec): SC {self.SC_trie.lookup_time}, EOA: {self.EOA_trie.lookup_time}')
 
-    def clean_transaction(self, transaction: dict) -> dict:
-
+    def clean_transaction(self, transaction: dict):
         del transaction['chainId']
         del transaction['logsBloom']
-        #del transaction['type']
-        #del transaction['@type']
+        del transaction['type']
+        del transaction['@type']
         del transaction['v']
         del transaction['r']
         del transaction['s']
@@ -61,8 +60,9 @@ class EthereumJsonParser:
         del transaction['to']
         del transaction['from']
 
-    def clean_block(self, block: dict) -> dict:
+    def clean_block(self, block: dict):
         del block['logsBloom']
+        del block['@type']
         if "ommers" in block:
             del block["ommers"]
         if "miner" in block:
