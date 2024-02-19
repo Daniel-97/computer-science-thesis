@@ -27,8 +27,8 @@ class EthereumJsonParser:
         self.eth_client = EthereumClient()
 
         # TRIE
-        self.SC_trie = Trie('SC')
-        self.EOA_trie = Trie('EOA')
+        self.SC_trie = Trie.load_instance('SC')
+        self.EOA_trie = Trie.load_instance('EOA')
 
         # MODELS PARSER
         input_file_name = input_file_path.split('/')[-1].split('.')[0]
@@ -40,12 +40,14 @@ class EthereumJsonParser:
     
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
-        self.SC_trie.save_trie()
-        self.EOA_trie.save_trie()
+        Trie.save_trie(self.SC_trie)
+        Trie.save_trie(self.EOA_trie)
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
         print(f'Trie lookup time(sec): SC {self.SC_trie.lookup_time}, EOA: {self.EOA_trie.lookup_time}')
+        print(f'Trie nodes: SC: {self.SC_trie.total_nodes}, EOA: {self.EOA_trie.total_nodes}')
+
 
     def clean_transaction(self, transaction: dict):
         del transaction['chainId']

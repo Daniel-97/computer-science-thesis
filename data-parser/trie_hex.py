@@ -3,6 +3,7 @@ import os
 import time
 import pickle as cPickle
 import gc
+import sys
 class Node:
 
     char: str
@@ -16,32 +17,39 @@ class Trie():
 
     root: Node
 
+    @staticmethod
+    def load_instance(trie_name: str):
+         # Load the binary class if present
+        if os.path.exists(Trie.dump_file_name(trie_name)):
+            print(f'Start loading {trie_name} trie from disk...')
+            gc.disable()
+            with bz2.open(Trie.dump_file_name(trie_name), 'rb') as f:
+                instance = cPickle.load(f)
+                print(f"Loaded {f.tell()/1000/1000} MB from {Trie.dump_file_name(trie_name)}. Total nodes: {instance.total_nodes}")
+                print(sys.getsizeof(instance.root))
+            gc.enable()
+            return instance
+        else:
+            return Trie(trie_name)
+
+    @staticmethod
+    def dump_file_name(name: str) -> str:
+        return f'trie_dump/trie_{name}.bz2'
+    
+    @staticmethod
+    def save_trie(trie_instance):
+        print(f'Saving {trie_instance.name} trie on disk...')
+        with bz2.open(Trie.dump_file_name(trie_instance.name), 'wb') as f:
+            cPickle.dump(trie_instance,f)
+
     def __init__(self, name: str) -> None:
 
         self.name = name
+        self.root = Node('')
 
-        # Load the binary class if present
-        if os.path.exists(self._dump_file_name()):
-            print(f'Start loading {name} trie from disk...')
-            gc.disable()
-            with bz2.open(self._dump_file_name(), 'rb') as f:
-                self.root = cPickle.load(f)
-                print(f"Loaded {f.tell()/1000/1000} MB from {self._dump_file_name()}")
-            gc.enable()
-        else:
-            self.root = Node('')
-            
         # STATS
         self.lookup_time = 0
         self.total_nodes = 1
-    
-    def _dump_file_name(self):
-        return f'trie_dump/trie_{self.name}.bz2'
-    
-    def save_trie(self):
-        print(f'Saving {self.name} trie on disk...')
-        with bz2.open(self._dump_file_name(), 'wb') as f:
-            cPickle.dump(self.root,f)
 
     def add(self, word: str) -> None: 
 
@@ -62,6 +70,7 @@ class Trie():
                 new_child = Node(char)
                 node.children.append(new_child)
                 node = new_child
+                self.total_nodes += 1
     
     def find(self, word: str) -> bool:
 
