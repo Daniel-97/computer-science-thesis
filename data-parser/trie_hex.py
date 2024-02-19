@@ -18,6 +18,7 @@ class Trie():
         self.name = name
         self.file_name = f'trie_dump/datrie-{name}.trie'
         self.datrie = datrie.Trie("0123456789abcdef")
+        self.lookup_time = 0
         if os.path.exists(self.file_name):
             print(f'Start loading trie {name}')
             self.datrie = datrie.Trie.load(self.file_name)
@@ -27,10 +28,16 @@ class Trie():
        self.datrie[word] = node_type
     
     def find(self, word: str, node_type: NodeType) -> bool:
+
+        start_time = time.perf_counter()
+        found = False
         try:
-            return self.datrie[word] == node_type
+            found = self.datrie[word] == node_type
         except:
-            return False
+            pass
+        
+        self.lookup_time += time.perf_counter() - start_time
+        return found
         
     def save_trie(self):
         self.datrie.save(self.file_name)

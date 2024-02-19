@@ -44,6 +44,7 @@ class EthereumJsonParser:
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
         print(f'Trie nodes: {len(self.trie.datrie)}')
+        print(f'Trie lookup time: {self.trie.lookup_time}')
 
 
     def clean_transaction(self, transaction: dict):
