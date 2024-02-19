@@ -20,7 +20,7 @@ class Trie():
         self.datrie = datrie.Trie("0123456789abcdef")
         if os.path.exists(self.file_name):
             print(f'Start loading trie {name}')
-            self.datrie.load(self.file_name)
+            self.datrie = datrie.Trie.load(self.file_name)
             print(f'Loaded {len(self.datrie)} nodes from {name} trie')
 
     def add(self, word: str, node_type: NodeType) -> None: 
@@ -33,6 +33,6 @@ class Trie():
             return False
         
     def save_trie(self):
-        self.datrie.save(f'trie_dump/datrie-{self.name}.trie')
+        self.datrie.save(self.file_name)
     
             
