@@ -13,6 +13,7 @@ class EthereumJsonParser:
     def __init__(
             self,
             output_folder: str,
+            input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
             only_heuristic: bool,
@@ -30,8 +31,9 @@ class EthereumJsonParser:
         self.EOA_trie = Trie('EOA')
 
         # MODELS PARSER
-        self.model1_parser = ComplexModelParser(output_folder, max_file_size_mb, file_format)
-        self.model2_parser = SimpleModelParser(output_folder, max_file_size_mb, file_format)
+        input_file_name = input_file_path.split('/')[-1].split('.')[0]
+        self.model1_parser = ComplexModelParser(input_file_name, output_folder, max_file_size_mb, file_format)
+        self.model2_parser = SimpleModelParser(input_file_name, output_folder, max_file_size_mb, file_format)
 
         # STATS
         self.parsed_transaction = 0
@@ -104,7 +106,7 @@ class EthereumJsonParser:
                     break
                 
                 # Start parsing data from the start_block number
-                if not parse_block and block['number'] == start_block_hex:
+                if not parse_block and ( block['number'] == start_block_hex or int(block['number'],16) > start_block):
                     parse_block = True
 
                 # Parse until end_block is reached
@@ -201,6 +203,7 @@ if __name__ == "__main__":
     # Init ethereum json parser
     ethereum_parser = EthereumJsonParser(
         output_folder=args.output,
+        input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
         only_heuristic=args.only_heuristic,

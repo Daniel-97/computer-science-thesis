@@ -3,12 +3,12 @@ from abstract_model_parser import AbstractModelParser
 
 class SimpleModelParser(AbstractModelParser):
 
-    def __init__(self, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
+    def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
-        self._eoa_transaction_splitter = FileSplitterHelper('eoa-transactions', out_folder, max_file_size_mb, file_format)
-        self._contract_transaction_splitter = FileSplitterHelper('contract-transactions', out_folder, max_file_size_mb, file_format)
-        self._contract_creation_splitter = FileSplitterHelper('contract-creation', out_folder, max_file_size_mb, file_format)
-        self._unknown_transaction_splitter = FileSplitterHelper('unknown-transactions', out_folder, max_file_size_mb, file_format)
+        self._eoa_transaction_splitter = FileSplitterHelper(f'{input_file_name}-eoa-txs', out_folder, max_file_size_mb, file_format)
+        self._contract_transaction_splitter = FileSplitterHelper(f'{input_file_name}-sc-txs', out_folder, max_file_size_mb, file_format)
+        self._contract_creation_splitter = FileSplitterHelper(f'{input_file_name}-sc-creation', out_folder, max_file_size_mb, file_format)
+        self._unknown_transaction_splitter = FileSplitterHelper(f'{input_file_name}-unknown-txs', out_folder, max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         pass

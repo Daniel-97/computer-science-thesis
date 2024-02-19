@@ -1,4 +1,3 @@
-from typing import Tuple
 import bz2
 import os
 import time
@@ -31,9 +30,10 @@ class Trie():
             gc.enable()
         else:
             self.root = Node('')
-
+            
         # STATS
         self.lookup_time = 0
+        self.total_nodes = 1
     
     def _dump_file_name(self):
         return f'trie_dump/trie_{self.name}.bz2'
