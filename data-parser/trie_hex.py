@@ -4,14 +4,21 @@ import time
 import pickle as cPickle
 import gc
 import sys
+from enum import Enum
+
+class NodeType(Enum):
+    EOA = 0,
+    SC = 1
+
 class Node:
 
     char: str
+    node_type: NodeType
 
-    def __init__(self, char: str) -> None:
+    def __init__(self, char: str, node_type: NodeType) -> None:
         self.char = char
         self.children: list[Node] = []
-        #self.count = 1
+        self.node_type = node_type
 
 class Trie():
 
@@ -45,13 +52,13 @@ class Trie():
     def __init__(self, name: str) -> None:
 
         self.name = name
-        self.root = Node('')
+        self.root = Node('', None)
 
         # STATS
         self.lookup_time = 0
         self.total_nodes = 1
 
-    def add(self, word: str) -> None: 
+    def add(self, word: str, node_type: NodeType) -> None: 
 
         node = self.root
 
@@ -63,16 +70,15 @@ class Trie():
                 if child.char == char:
                     node = child
                     found_in_child = True
-                    #child.count += 1
                     break
 
             if not found_in_child:
-                new_child = Node(char)
+                new_child = Node(char, node_type)
                 node.children.append(new_child)
                 node = new_child
                 self.total_nodes += 1
     
-    def find(self, word: str) -> bool:
+    def find(self, word: str, node_type: NodeType) -> bool:
 
         start_time = time.perf_counter()
         node = self.root
@@ -83,7 +89,7 @@ class Trie():
         for char in word:
             char_found = False
             for child in node.children:
-                if child.char == char:
+                if child.char == char and child.node_type == node_type:
                     node = child
                     char_found = True
                     break

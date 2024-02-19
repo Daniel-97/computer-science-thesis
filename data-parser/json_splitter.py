@@ -2,7 +2,7 @@ import ijson
 from argparse import ArgumentParser
 from eth._utils import address
 from eth_utils import to_canonical_address
-from trie_hex import Trie
+from trie_hex import Trie, NodeType
 from model_parser.complex_model_parser import ComplexModelParser
 from model_parser.simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
@@ -27,8 +27,7 @@ class EthereumJsonParser:
         self.eth_client = EthereumClient()
 
         # TRIE
-        self.SC_trie = Trie.load_instance('SC')
-        self.EOA_trie = Trie.load_instance('EOA')
+        self.trie = Trie.load_instance('SC-EOA')
 
         # MODELS PARSER
         input_file_name = input_file_path.split('/')[-1].split('.')[0]
@@ -40,13 +39,12 @@ class EthereumJsonParser:
     
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
-        Trie.save_trie(self.SC_trie)
-        Trie.save_trie(self.EOA_trie)
+        Trie.save_trie(self.trie)
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
-        print(f'Trie lookup time(sec): SC {self.SC_trie.lookup_time}, EOA: {self.EOA_trie.lookup_time}')
-        print(f'Trie nodes: SC: {self.SC_trie.total_nodes}, EOA: {self.EOA_trie.total_nodes}')
+        print(f'Trie lookup time(sec): {self.trie.lookup_time}')
+        print(f'Trie nodes: {self.trie.total_nodes}')
 
 
     def clean_transaction(self, transaction: dict):
@@ -134,7 +132,7 @@ class EthereumJsonParser:
 
                     to_address = transaction.get('toAddress')
                     from_address = transaction.get('fromAddress')
-                    self.EOA_trie.add(from_address[2:]) # Add the EOA address to the EOA trie
+                    self.trie.add(from_address[2:], NodeType.EOA) # Add the EOA address to the trie
 
                     # If the destination address is None then it is a smart contract creation
                     if to_address is None:
@@ -145,7 +143,7 @@ class EthereumJsonParser:
                             nonce=int(transaction.get("nonce"), 16)
                         )
                         #Add the address to the trie       
-                        self.SC_trie.add(contract_address.hex())
+                        self.trie.add(contract_address.hex(), NodeType.SC)
                         transaction['contractAddress'] = "0x" + contract_address.hex()
 
                         # call model parser
@@ -154,13 +152,13 @@ class EthereumJsonParser:
                             self.model2_parser.parse_contract_creation(transaction, block)
 
                     # If there are logs in the transaction, or is in the trie of SC is an SC
-                    elif 'logs' in transaction or self.SC_trie.find(to_address[2:]):
-                        self.SC_trie.add(to_address[2:]) # Add the destination address to the trie
+                    elif 'logs' in transaction or self.trie.find(to_address[2:], NodeType.SC):
+                        self.trie.add(to_address[2:], NodeType.SC) # Add the destination address to the trie
                         if parse_block:
                             self.model1_parser.parse_contract_transaction(transaction)
                             self.model2_parser.parse_contract_transaction(transaction, block)
 
-                    elif self.EOA_trie.find(to_address[2:]):
+                    elif self.trie.find(to_address[2:], NodeType.EOA):
 
                         if parse_block:
                             self.model1_parser.parse_eoa_transaction(transaction)
@@ -180,12 +178,12 @@ class EthereumJsonParser:
                         else:
 
                             if self.eth_client.is_contract(to_address):
-                                self.SC_trie.add(to_address[2:])
+                                self.trie.add(to_address[2:], NodeType.SC)
                                 if parse_block:
                                     self.model1_parser.parse_contract_transaction(transaction)
                                     self.model2_parser.parse_contract_transaction(transaction, block)
                             else:
-                                self.EOA_trie.add(to_address[2:])
+                                self.trie.add(to_address[2:], NodeType.EOA)
                                 if parse_block:
                                     self.model1_parser.parse_eoa_transaction(transaction)
                                     self.model2_parser.parse_eoa_transaction(transaction, block)
