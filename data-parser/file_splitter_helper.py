@@ -8,7 +8,7 @@ class FileSplitterHelper:
 
     def __init__(self, file_prefix: str, output_folder: str, max_file_size_mb: int, file_format: str):
         self.file_prefix = file_prefix
-        self.output_folder = output_folder + '/' + file_prefix
+        self.output_folder = output_folder
         self.max_file_size = max_file_size_mb * 1000000
         self.format = file_format
         self.file = None

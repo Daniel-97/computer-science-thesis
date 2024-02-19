@@ -13,6 +13,7 @@ class EthereumJsonParser:
     def __init__(
             self,
             output_folder: str,
+            input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
             only_heuristic: bool,
@@ -26,50 +27,33 @@ class EthereumJsonParser:
         self.eth_client = EthereumClient()
 
         # TRIE
-        self.SC_trie = Trie('SC')
-        self.EOA_trie = Trie('EOA')
+        self.SC_trie = Trie.load_instance('SC')
+        self.EOA_trie = Trie.load_instance('EOA')
 
         # MODELS PARSER
-        self.model1_parser = ComplexModelParser(output_folder, max_file_size_mb, file_format)
-        self.model2_parser = SimpleModelParser(output_folder, max_file_size_mb, file_format)
+        input_file_name = input_file_path.split('/')[-1].split('.')[0]
+        self.model1_parser = ComplexModelParser(input_file_name, output_folder, max_file_size_mb, file_format)
+        self.model2_parser = SimpleModelParser(input_file_name, output_folder, max_file_size_mb, file_format)
 
         # STATS
         self.parsed_transaction = 0
     
-    # def start_parse(self, start_block: str, end_block: str):
-        
-    #     # BLOCKS NUMBER
-    #     start_block = '0x0' if start_block is None else start_block
-    #     end_block = None if end_block is None else end_block
-
-    #     # Parse all the input files
-    #     files = []
-    #     for file_name in os.listdir(self.input_folder):
-    #         if 'dump' in file_name: 
-    #             files.append(f'{self.input_folder}/{file_name}')
-    #     files.sort()
-
-    #     for file_path in files:
-    #         print(f'Start parsing file {file_path}')
-    #         parsed_transaction = self.parse_file(file_path, start_block, end_block)
-    #         self.parsed_transaction += parsed_transaction
-    #         print(f'Parsed {parsed_transaction} transaction')
-    
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
-        self.SC_trie.save_trie()
-        self.EOA_trie.save_trie()
+        Trie.save_trie(self.SC_trie)
+        Trie.save_trie(self.EOA_trie)
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
         print(f'Trie lookup time(sec): SC {self.SC_trie.lookup_time}, EOA: {self.EOA_trie.lookup_time}')
+        print(f'Trie nodes: SC: {self.SC_trie.total_nodes}, EOA: {self.EOA_trie.total_nodes}')
 
-    def clean_transaction(self, transaction: dict) -> dict:
 
+    def clean_transaction(self, transaction: dict):
         del transaction['chainId']
         del transaction['logsBloom']
-        #del transaction['type']
-        #del transaction['@type']
+        del transaction['type']
+        del transaction['@type']
         del transaction['v']
         del transaction['r']
         del transaction['s']
@@ -80,10 +64,9 @@ class EthereumJsonParser:
         del transaction['to']
         del transaction['from']
 
-        return transaction
-
-    def clean_block(self, block: dict) -> dict:
+    def clean_block(self, block: dict):
         del block['logsBloom']
+        del block['@type']
         if "ommers" in block:
             del block["ommers"]
         if "miner" in block:
@@ -91,8 +74,22 @@ class EthereumJsonParser:
             block["minerAddress"] = block.get("miner").get("address")
             del block["miner"]
         
-        return block
+    def convert_block_field(self, block: dict) -> dict:
+        self.convert_filed(block, 'number')
+        self.convert_filed(block, 'gasLimit')
+        self.convert_filed(block, 'gasUsed')
+        self.convert_filed(block, 'timestamp')
 
+    def convert_transaction_field(self, transaction: dict) -> dict:
+        self.convert_filed(transaction, 'gas')
+        self.convert_filed(transaction, 'gasPrice')
+        self.convert_filed(transaction, 'gasUsed')
+        self.convert_filed(transaction, 'value')
+
+    def convert_filed(self, dict: dict, field_name: str) -> int:
+        if field_name in dict:
+            dict[field_name] = int(dict[field_name],16)
+    
     def parse_file(self, file_path: str, start_block: int, end_block: int):
 
         file_name = file_path.split('/')[-1]
@@ -111,7 +108,7 @@ class EthereumJsonParser:
                     break
                 
                 # Start parsing data from the start_block number
-                if not parse_block and block['number'] == start_block_hex:
+                if not parse_block and ( block['number'] == start_block_hex or int(block['number'],16) > start_block):
                     parse_block = True
 
                 # Parse until end_block is reached
@@ -126,11 +123,14 @@ class EthereumJsonParser:
                 del block['transactions']
                 
                 if parse_block:
-                    self.model1_parser.parse_block(block=self.clean_block(block))
+                    self.clean_block(block)
+                    self.convert_block_field(block)
+                    self.model1_parser.parse_block(block)
 
                 for transaction in transactions:
                     self.parsed_transaction += 1
-                    transaction = self.clean_transaction(transaction=transaction)
+                    self.clean_transaction(transaction)
+                    self.convert_transaction_field(transaction)
 
                     to_address = transaction.get('toAddress')
                     from_address = transaction.get('fromAddress')
@@ -205,6 +205,7 @@ if __name__ == "__main__":
     # Init ethereum json parser
     ethereum_parser = EthereumJsonParser(
         output_folder=args.output,
+        input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
         only_heuristic=args.only_heuristic,
