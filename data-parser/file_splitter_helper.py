@@ -78,9 +78,9 @@ class FileSplitterHelper:
             if self.format == 'json':
                 self.file.write('\n]')
 
-            print(f'Saving file {self._file_name()}...')
+            #print(f'Saving file {self._file_name()}...')
             self.file.close()
-            print(f'File {self._file_name()} saved! ({self._file_size()} byte)')
+            #print(f'File {self._file_name()} saved! ({self._file_size()} byte)')
             self.file_size = 0
 
     def _file_name(self):
