@@ -1,12 +1,7 @@
-import bz2
 import os
 import time
-import pickle as cPickle
-import gc
-import sys
 from enum import Enum
 import datrie
-import string
 
 class NodeType(Enum):
     EOA = 0,
