@@ -5,100 +5,41 @@ import pickle as cPickle
 import gc
 import sys
 from enum import Enum
+import datrie
+import string
 
 class NodeType(Enum):
     EOA = 0,
     SC = 1
 
-class Node:
-
-    char: str
-    node_type: NodeType
-
-    def __init__(self, char: str, node_type: NodeType) -> None:
-        self.char = char
-        self.children: list[Node] = []
-        self.node_type = node_type
-
 class Trie():
 
-    root: Node
-
-    @staticmethod
-    def load_instance(trie_name: str):
-         # Load the binary class if present
-        if os.path.exists(Trie.dump_file_name(trie_name)):
-            print(f'Start loading {trie_name} trie from disk...')
-            gc.disable()
-            with bz2.open(Trie.dump_file_name(trie_name), 'rb') as f:
-                instance = cPickle.load(f)
-                print(f"Loaded {f.tell()/1000/1000} MB from {Trie.dump_file_name(trie_name)}. Total nodes: {instance.total_nodes}")
-                print(sys.getsizeof(instance.root))
-            gc.enable()
-            return instance
-        else:
-            return Trie(trie_name)
-
-    @staticmethod
-    def dump_file_name(name: str) -> str:
-        return f'trie_dump/trie_{name}.bz2'
-    
-    @staticmethod
-    def save_trie(trie_instance):
-        print(f'Saving {trie_instance.name} trie on disk...')
-        with bz2.open(Trie.dump_file_name(trie_instance.name), 'wb') as f:
-            cPickle.dump(trie_instance,f)
-
     def __init__(self, name: str) -> None:
-
         self.name = name
-        self.root = Node('', None)
-
-        # STATS
+        self.file_name = f'trie_dump/datrie-{name}.trie'
+        self.datrie = datrie.Trie("0123456789abcdef")
         self.lookup_time = 0
-        self.total_nodes = 1
+        if os.path.exists(self.file_name):
+            print(f'Start loading trie {name}')
+            self.datrie = datrie.Trie.load(self.file_name)
+            print(f'Loaded {len(self.datrie)} nodes from {name} trie')
 
     def add(self, word: str, node_type: NodeType) -> None: 
-
-        node = self.root
-
-        for char in word:
-            
-            found_in_child = False
-
-            for child in node.children:
-                if child.char == char:
-                    node = child
-                    found_in_child = True
-                    break
-
-            if not found_in_child:
-                new_child = Node(char, node_type)
-                node.children.append(new_child)
-                node = new_child
-                self.total_nodes += 1
+       self.datrie[word] = node_type
     
     def find(self, word: str, node_type: NodeType) -> bool:
 
         start_time = time.perf_counter()
-        node = self.root
-
-        if not node.children:
-            return False
-        
-        for char in word:
-            char_found = False
-            for child in node.children:
-                if child.char == char and child.node_type == node_type:
-                    node = child
-                    char_found = True
-                    break
-
-            if not char_found:
-                return False
+        found = False
+        try:
+            found = self.datrie[word] == node_type
+        except:
+            pass
         
         self.lookup_time += time.perf_counter() - start_time
-        # return true only if it is a child
-        return len(node.children) == 0
+        return found
+        
+    def save_trie(self):
+        self.datrie.save(self.file_name)
     
             

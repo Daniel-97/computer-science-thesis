@@ -1,2 +1,2 @@
 ijson==3.2.3
-py-env
+datrie==0.8.2
