@@ -5,10 +5,10 @@ class SimpleModelParser(AbstractModelParser):
 
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
-        self._eoa_transaction_splitter = FileSplitterHelper(f'{input_file_name}-eoa-txs', out_folder, max_file_size_mb, file_format)
-        self._contract_transaction_splitter = FileSplitterHelper(f'{input_file_name}-sc-txs', out_folder, max_file_size_mb, file_format)
-        self._contract_creation_splitter = FileSplitterHelper(f'{input_file_name}-sc-creation', out_folder, max_file_size_mb, file_format)
-        self._unknown_transaction_splitter = FileSplitterHelper(f'{input_file_name}-unknown-txs', out_folder, max_file_size_mb, file_format)
+        self._eoa_transaction_splitter = FileSplitterHelper(f'{input_file_name}-eoa-txs', f'{out_folder}/eoa-txs', max_file_size_mb, file_format)
+        self._contract_transaction_splitter = FileSplitterHelper(f'{input_file_name}-sc-txs', f'{out_folder}/sc-txs', max_file_size_mb, file_format)
+        self._contract_creation_splitter = FileSplitterHelper(f'{input_file_name}-sc-creation', f'{out_folder}/sc-creation', max_file_size_mb, file_format)
+        self._unknown_transaction_splitter = FileSplitterHelper(f'{input_file_name}-unk-txs', f'{out_folder}/unk-txs', max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         pass
@@ -88,7 +88,7 @@ class SimpleModelParser(AbstractModelParser):
                 topics = ['-1','-1','-1', '-1']
                 for index, topic in enumerate(log.get('topics', [])):
                     topics[index] = topic
-                transaction['logs_topic'].append(','.join(topics))
+                transaction['logs_topic'].append('|'.join(topics))
                 transaction['logs_data'].append(log.get('data'))
                 transaction['logs_block_number'].append(log.get('blockNumber',''))
                 transaction['logs_transaction_index'].append(log.get('transactionIndex',''))

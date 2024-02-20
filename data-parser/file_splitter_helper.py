@@ -45,28 +45,21 @@ class FileSplitterHelper:
         self.total_row_saved += 1
     
     def _generate_row(self, element: dict):
-        #element = copy.deepcopy(element)
         if_first_row = self.file_size == 0
 
         if self.format == "csv":
-            csv_buffer = io.StringIO()
-            csv_writer = csv.DictWriter(csv_buffer, element.keys(), extrasaction='ignore')
-
+            csv_string = ''
             if if_first_row:
-                csv_writer.writeheader()
+                csv_string = ','.join(element.keys()) + '\n'
             
-            row = {}
             # Flatten all array items
-            for key in element:
+            for index, key in enumerate(element):
                 if type(element[key]) is list:
-                    row[key] = ','.join(element[key])
+                    csv_string += (',' if index > 0 else '') + ';'.join(element[key])
                 else:
-                    row[key] = element[key]
+                    csv_string += (',' if index > 0 else '') + f'{element[key]}'
 
-            csv_writer.writerow(row)
-            csv_string = csv_buffer.getvalue()
-            csv_buffer.close()
-
+            csv_string += '\n'
             return csv_string
         
         elif self.format == "json":
