@@ -117,7 +117,7 @@ class EthereumJsonParser:
                 if "transactions" not in block:
                     continue
 
-                transactions = block.get("transactions", [])
+                transactions = block['transactions']
                 del block['transactions']
                 
                 if parse_block:

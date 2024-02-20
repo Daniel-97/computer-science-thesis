@@ -45,7 +45,7 @@ class FileSplitterHelper:
         self.total_row_saved += 1
     
     def _generate_row(self, element: dict):
-        element = copy.deepcopy(element)
+        #element = copy.deepcopy(element)
         if_first_row = self.file_size == 0
 
         if self.format == "csv":
@@ -54,13 +54,16 @@ class FileSplitterHelper:
 
             if if_first_row:
                 csv_writer.writeheader()
-
+            
+            row = {}
             # Flatten all array items
             for key in element:
                 if type(element[key]) is list:
-                    element[key] = ','.join(element[key]) 
+                    row[key] = ','.join(element[key])
+                else:
+                    row[key] = element[key]
 
-            csv_writer.writerow(element)
+            csv_writer.writerow(row)
             csv_string = csv_buffer.getvalue()
             csv_buffer.close()
 
