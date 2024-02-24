@@ -6,8 +6,7 @@ class SimpleModelParser(AbstractModelParser):
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
         dump_name = input_file_name.split('_')[0]
-        self._eoa_splitter = FileSplitterHelper(f'{dump_name}-eoa', f'{out_folder}/nodes/', max_file_size_mb, file_format)
-        self._sc_splitter = FileSplitterHelper(f'{dump_name}-sc', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format)
         self._unk_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/nodes/', max_file_size_mb, file_format)
         self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format)
         self._invocation_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format)
@@ -21,8 +20,8 @@ class SimpleModelParser(AbstractModelParser):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
 
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._eoa_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'EOA'})
         self._transfer_splitter.append(element=transaction)
 
     def parse_contract_transaction(self, transaction: dict, block: dict):
@@ -30,8 +29,8 @@ class SimpleModelParser(AbstractModelParser):
         block = self._add_dict_prefix(dict=block, prefix='block')
         transaction = {**transaction, **block}
         self._flatten_logs(transaction)
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._sc_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'EOA'})
         self._invocation_splitter.append(element=transaction)
 
     def parse_contract_creation(self, transaction: dict, block: dict):
@@ -39,30 +38,26 @@ class SimpleModelParser(AbstractModelParser):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
         self._flatten_logs(transaction)
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._sc_splitter.append(element={'address': transaction['contractAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['contractAddress'], 'address_type': 'SC'})
         self._creation_splitter.append(element=transaction)
 
     def parse_unknown_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._unk_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'UNK'})
         self._unk_rel_splitter.append(element=transaction)
 
     def close_parser(self):
-        self._eoa_splitter.end_file()
-        self._sc_splitter.end_file()
-        self._unk_splitter.end_file()
+        self._account_splitter.end_file()
         self._transfer_splitter.end_file()
         self._invocation_splitter.end_file()
         self._creation_splitter.end_file()
         self._unk_rel_splitter.end_file()
 
         print("\nModel 2 (simple) stats:")
-        print("- total EOA address: ", self._eoa_splitter.total_row_saved)
-        print("- total SC address: ", self._sc_splitter.total_row_saved)
-        print("- total UNK address: ", self._unk_splitter.total_row_saved)
+        print("- total address: ", self._account_splitter.total_row_saved)
         print("- total transfer transaction: ", self._transfer_splitter.total_row_saved)
         print("- total invocation transaction: ", self._invocation_splitter.total_row_saved)
         print("- total creation transaction: ", self._creation_splitter.total_row_saved)

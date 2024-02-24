@@ -9,9 +9,7 @@ class ComplexModelParser(AbstractModelParser):
         # NODES
         self._block_splitter = FileSplitterHelper(f'{dump_name}-blocks', f'{out_folder}/nodes/', max_file_size_mb, file_format)
         self._transaction_splitter = FileSplitterHelper(f'{dump_name}-txs', f'{out_folder}/nodes/', max_file_size_mb, file_format)
-        self._eoa_splitter = FileSplitterHelper(f'{dump_name}-eoa', f'{out_folder}/nodes/', max_file_size_mb, file_format)
-        self._sc_splitter = FileSplitterHelper(f'{dump_name}-sc', f'{out_folder}/nodes/', max_file_size_mb, file_format)
-        self._unk_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format)
         self._log_splitter = FileSplitterHelper(f'{dump_name}-log', f'{out_folder}/nodes/', max_file_size_mb, file_format)
 
         # REL
@@ -27,8 +25,8 @@ class ComplexModelParser(AbstractModelParser):
         self._block_splitter.append(element=block)
     
     def parse_eoa_transaction(self, transaction: dict):
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._eoa_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'EOA'})
         self._transaction_splitter.append(element=transaction)
         self._transfer_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
 
@@ -37,8 +35,8 @@ class ComplexModelParser(AbstractModelParser):
         logs = transaction.get('logs', [])
         if 'logs' in transaction:
             del transaction['logs']
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._sc_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'SC'})
         self._transaction_splitter.append(element=transaction)
         self._invocation_rel_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
@@ -48,15 +46,15 @@ class ComplexModelParser(AbstractModelParser):
         logs = transaction.get('logs', [])
         if 'logs' in transaction:
             del transaction['logs']
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._sc_splitter.append(element={'address': transaction['contractAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['contractAddress'], 'account_type': 'SC'})
         self._transaction_splitter.append(element=transaction)
         self._creation_splitter.append(element={'txs': transaction['hash'], 'to': transaction['contractAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
 
     def parse_unknown_transaction(self, transaction: dict):
-        self._eoa_splitter.append(element={'address': transaction['fromAddress']})
-        self._unk_splitter.append(element={'address': transaction['toAddress']})
+        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
+        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'UNK'})
         self._transaction_splitter.append(element=transaction)
         self._unk_rel_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
 
@@ -71,9 +69,7 @@ class ComplexModelParser(AbstractModelParser):
         # Safe close all splitter
         self._block_splitter.end_file()
         self._transaction_splitter.end_file()
-        self._eoa_splitter.end_file()
-        self._sc_splitter.end_file()
-        self._unk_splitter.end_file()
+        self._account_splitter.end_file()
         self._sent_splitter.end_file()
         self._contained_splitter.end_file()
         self._transfer_splitter.end_file()
@@ -85,7 +81,6 @@ class ComplexModelParser(AbstractModelParser):
         print("\nModel 1 (complex) stats:")
         print("- total blocks: ", self._block_splitter.total_row_saved)
         print("- total transactions: ", self._transaction_splitter.total_row_saved)
-        print("- total contract: ", self._sc_splitter.total_row_saved)
-        print("- total eoa ", self._eoa_splitter.total_row_saved)
+        print("- total address: ", self._account_splitter.total_row_saved)
         print("- total logs: ", self._log_splitter.total_row_saved)
         print("- total unknown transactions: ", self._unk_rel_splitter.total_row_saved)
