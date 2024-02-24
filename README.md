@@ -5,15 +5,23 @@ the destination address of the transaction.
 ## neo4j-admin import
 
 ### model1 
-bin/neo4j-admin database import full
---delimiter=","
---array-delimiter=";"
---skip-duplicate-nodes
---nodes=Block=nodes/dump0-blocks-0.csv
---nodes=Transaction=nodes/dump0-txs-0.csv
---nodes=
---relationships=import/roles.csv 
-neo4j
+bin/neo4j-admin database import full \
+--verbose \
+--delimiter="," \
+--array-delimiter=";" \
+--skip-duplicate-nodes \
+--overwrite-destination=true \
+--report-file=report.txt \
+--nodes=Block=import/output/model1-data/nodes/dump0-blocks0.csv \
+--nodes=Account=import/output/model1-data/nodes/dump0-account0.csv \
+--nodes=Transaction=import/output/model1-data/nodes/dump0-txs0.csv \
+--nodes=Event=import/output/model1-data/nodes/dump0-log0.csv \
+--relationships=CREATED=import/output/model1-data/rel/dump0-creation0.csv \
+--relationships=EMITTED=import/output/model1-data/rel/dump0-emitted.csv \
+--relationships=INVOKED=import/output/model1-data/rel/dump0-invocation0.csv \
+--relationships=TRANSFERRED=import/output/model1-data/rel/dump0-transfer0.csv \
+--relationships=TO=import/output/model1-data/rel/dump0-unk0.csv \
+model1
 
 ### model2
 
