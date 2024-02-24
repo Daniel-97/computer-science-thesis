@@ -5,22 +5,23 @@ class ComplexModelParser(AbstractModelParser):
 
     def __init__(self,input_file_name: str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model1-data'
+        dump_name = input_file_name.split('_')[0]
         # NODES
-        self._block_splitter = FileSplitterHelper(f'blocks', f'{out_folder}/nodes/blocks', max_file_size_mb, file_format)
-        self._transaction_splitter = FileSplitterHelper(f'txs', f'{out_folder}/nodes/txs', max_file_size_mb, file_format)
-        self._eoa_splitter = FileSplitterHelper(f'eoa', f'{out_folder}/nodes/eoa', max_file_size_mb, file_format)
-        self._sc_splitter = FileSplitterHelper(f'sc', f'{out_folder}/nodes/sc', max_file_size_mb, file_format)
-        self._unk_splitter = FileSplitterHelper(f'unk', f'{out_folder}/nodes/unk', max_file_size_mb, file_format)
-        self._log_splitter = FileSplitterHelper(f'log', f'{out_folder}/nodes/log', max_file_size_mb, file_format)
+        self._block_splitter = FileSplitterHelper(f'{dump_name}-blocks', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._transaction_splitter = FileSplitterHelper(f'{dump_name}-txs', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._eoa_splitter = FileSplitterHelper(f'{dump_name}-eoa', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._sc_splitter = FileSplitterHelper(f'{dump_name}-sc', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._unk_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._log_splitter = FileSplitterHelper(f'{dump_name}-log', f'{out_folder}/nodes/', max_file_size_mb, file_format)
 
         # REL
-        self._sent_splitter = FileSplitterHelper(f'sent', f'{out_folder}/rel/sent', max_file_size_mb, file_format)
-        self._contained_splitter = FileSplitterHelper(f'contained', f'{out_folder}/rel/contained', max_file_size_mb, file_format)
-        self._transfer_splitter = FileSplitterHelper(f'transfer', f'{out_folder}/rel/transfer', max_file_size_mb, file_format)
-        self._creation_splitter = FileSplitterHelper(f'creation', f'{out_folder}/rel/creation', max_file_size_mb, file_format)
-        self._invocation_rel_splitter = FileSplitterHelper(f'invocation', f'{out_folder}/rel/invocation', max_file_size_mb, file_format)
-        self._emitted_splitter = FileSplitterHelper(f'emitted', f'{out_folder}/rel/emitted', max_file_size_mb, file_format)
-        self._unk_rel_splitter = FileSplitterHelper(f'unk', f'{out_folder}/rel/unk', max_file_size_mb, file_format)
+        self._sent_splitter = FileSplitterHelper(f'{dump_name}-sent', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._contained_splitter = FileSplitterHelper(f'{dump_name}-contained', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._invocation_rel_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._emitted_splitter = FileSplitterHelper(f'{dump_name}-emitted', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         self._block_splitter.append(element=block)

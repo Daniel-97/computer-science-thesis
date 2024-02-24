@@ -13,7 +13,7 @@ class FileSplitterHelper:
         self.format = file_format
         self.file = None
         self.file_size = 0
-        self.file_number = 0
+        self.file_number = -1
         self.total_row_saved = 0
 
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)

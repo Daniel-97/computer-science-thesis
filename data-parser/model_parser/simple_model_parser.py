@@ -5,13 +5,14 @@ class SimpleModelParser(AbstractModelParser):
 
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
-        self._eoa_splitter = FileSplitterHelper(f'eoa', f'{out_folder}/nodes/eoa', max_file_size_mb, file_format)
-        self._sc_splitter = FileSplitterHelper(f'sc', f'{out_folder}/nodes/sc', max_file_size_mb, file_format)
-        self._unk_splitter = FileSplitterHelper(f'unk', f'{out_folder}/nodes/unk', max_file_size_mb, file_format)
-        self._transfer_splitter = FileSplitterHelper(f'transfer', f'{out_folder}/rel/transfer', max_file_size_mb, file_format)
-        self._invocation_splitter = FileSplitterHelper(f'invocation', f'{out_folder}/rel/invocation', max_file_size_mb, file_format)
-        self._creation_splitter = FileSplitterHelper(f'creation', f'{out_folder}/rel/creation', max_file_size_mb, file_format)
-        self._unk_rel_splitter = FileSplitterHelper(f'unk', f'{out_folder}/rel/unk', max_file_size_mb, file_format)
+        dump_name = input_file_name.split('_')[0]
+        self._eoa_splitter = FileSplitterHelper(f'{dump_name}-eoa', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._sc_splitter = FileSplitterHelper(f'{dump_name}-sc', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._unk_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/nodes/', max_file_size_mb, file_format)
+        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._invocation_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format)
+        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format)
 
     def parse_block(self, block: dict):
         pass
