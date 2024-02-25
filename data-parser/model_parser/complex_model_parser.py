@@ -56,7 +56,7 @@ class ComplexModelParser(AbstractModelParser):
             log_hash = f'{index}_{transaction_hash}'
             log['hash'] = log_hash
             if 'topics' not in log:
-                log['topics'] = []
+                log['topics'] = ['-1']
             self._log_splitter.append(element=log)
             self._emitted_splitter.append(element={'transactionHash': transaction_hash,'logHash': log_hash})
 

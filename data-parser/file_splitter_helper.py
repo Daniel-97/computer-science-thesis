@@ -52,7 +52,7 @@ class FileSplitterHelper:
             csv_string = ''
             if if_first_row:
                 if self.headers is None:
-                    self.headers = element.keys()
+                    self.headers = element.keys() #todo header and data must be of the same type
                 csv_string = ','.join(self.headers) + '\n'
             
             if len(self.headers) != len(element.keys()):
