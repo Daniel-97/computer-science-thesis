@@ -43,7 +43,7 @@ class SimpleModelParser(AbstractModelParser):
 
     def parse_trie(self, trie: Trie):
         for key, item in trie.datrie.items():
-            self._account_splitter.append(element={'address': key, 'account_type': item.value})
+            self._account_splitter.append(element={'address': f'0x{key}', 'account_type': item.value})
 
     def close_parser(self):
         self._account_splitter.end_file()
