@@ -4,10 +4,11 @@ from enum import Enum
 import datrie
 
 class NodeType(Enum):
-    EOA = 0,
-    SC = 1
+    EOA = 1
+    SC = 2
+    UNK = 3
 
-class Trie():
+class Trie:
 
     def __init__(self, name: str) -> None:
         self.name = name

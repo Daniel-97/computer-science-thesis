@@ -1,5 +1,6 @@
 from file_splitter_helper import FileSplitterHelper
 from abstract_model_parser import AbstractModelParser
+from trie_hex import Trie
 
 class ComplexModelParser(AbstractModelParser):
 
@@ -25,8 +26,6 @@ class ComplexModelParser(AbstractModelParser):
         self._block_splitter.append(element=block)
     
     def parse_eoa_transaction(self, transaction: dict):
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'EOA'})
         self._transaction_splitter.append(element=transaction)
         self._transfer_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
 
@@ -35,8 +34,6 @@ class ComplexModelParser(AbstractModelParser):
         logs = transaction.get('logs', [])
         if 'logs' in transaction:
             del transaction['logs']
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'SC'})
         self._transaction_splitter.append(element=transaction)
         self._invocation_rel_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
@@ -46,15 +43,11 @@ class ComplexModelParser(AbstractModelParser):
         logs = transaction.get('logs', [])
         if 'logs' in transaction:
             del transaction['logs']
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['contractAddress'], 'account_type': 'SC'})
         self._transaction_splitter.append(element=transaction)
         self._creation_splitter.append(element={'txs': transaction['hash'], 'to': transaction['contractAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
 
     def parse_unknown_transaction(self, transaction: dict):
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'account_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'account_type': 'UNK'})
         self._transaction_splitter.append(element=transaction)
         self._unk_rel_splitter.append(element={'txs': transaction['hash'], 'to': transaction['toAddress']})
 
@@ -64,6 +57,10 @@ class ComplexModelParser(AbstractModelParser):
             log['hash'] = log_hash
             self._log_splitter.append(element=log)
             self._emitted_splitter.append(element={'transactionHash': transaction_hash,'logHash': log_hash})
+
+    def parse_trie(self, trie: Trie):
+        for key, item in trie.datrie.items():
+            self._account_splitter.append(element={'address': key, 'account_type': item.value})
 
     def close_parser(self):
         # Safe close all splitter

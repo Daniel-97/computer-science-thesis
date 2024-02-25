@@ -40,6 +40,8 @@ class EthereumJsonParser:
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
         self.trie.save_trie()
+        self.model1_parser.parse_trie(self.trie)
+        self.model2_parser.parse_trie(self.trie)
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
         print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
@@ -130,8 +132,8 @@ class EthereumJsonParser:
                     self.clean_transaction(transaction)
                     self.convert_transaction_field(transaction)
 
-                    to_address = transaction.get('toAddress')
                     from_address = transaction.get('fromAddress')
+                    to_address = transaction.get('toAddress')
                     self.trie.add(from_address[2:], NodeType.EOA) # Add the EOA address to the trie
 
                     # If the destination address is None then it is a smart contract creation
@@ -171,6 +173,7 @@ class EthereumJsonParser:
 
                         # If only heuristic is true, do not use local eth client for node classification
                         if self.only_heuristic:
+                            self.trie.add(to_address[2:], NodeType.UNK)
                             if parse_block:
                                 self.model1_parser.parse_unknown_transaction(transaction)
                                 self.model2_parser.parse_unknown_transaction(transaction, block)

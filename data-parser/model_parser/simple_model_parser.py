@@ -1,5 +1,6 @@
 from file_splitter_helper import FileSplitterHelper
 from abstract_model_parser import AbstractModelParser
+from trie_hex import Trie
 
 class SimpleModelParser(AbstractModelParser):
 
@@ -19,9 +20,6 @@ class SimpleModelParser(AbstractModelParser):
     def parse_eoa_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'EOA'})
         self._transfer_splitter.append(element=transaction)
 
     def parse_contract_transaction(self, transaction: dict, block: dict):
@@ -29,8 +27,6 @@ class SimpleModelParser(AbstractModelParser):
         block = self._add_dict_prefix(dict=block, prefix='block')
         transaction = {**transaction, **block}
         self._flatten_logs(transaction)
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'EOA'})
         self._invocation_splitter.append(element=transaction)
 
     def parse_contract_creation(self, transaction: dict, block: dict):
@@ -38,16 +34,16 @@ class SimpleModelParser(AbstractModelParser):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
         self._flatten_logs(transaction)
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['contractAddress'], 'address_type': 'SC'})
         self._creation_splitter.append(element=transaction)
 
     def parse_unknown_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._account_splitter.append(element={'address': transaction['fromAddress'], 'address_type': 'EOA'})
-        self._account_splitter.append(element={'address': transaction['toAddress'], 'address_type': 'UNK'})
         self._unk_rel_splitter.append(element=transaction)
+
+    def parse_trie(self, trie: Trie):
+        for key, item in trie.datrie.items():
+            self._account_splitter.append(element={'address': key, 'account_type': item.value})
 
     def close_parser(self):
         self._account_splitter.end_file()
