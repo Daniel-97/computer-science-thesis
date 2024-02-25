@@ -15,6 +15,7 @@ class FileSplitterHelper:
         self.file_size = 0
         self.file_number = -1
         self.total_row_saved = 0
+        self.headers = None
 
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
 
@@ -50,8 +51,13 @@ class FileSplitterHelper:
         if self.format == "csv":
             csv_string = ''
             if if_first_row:
-                csv_string = ','.join(element.keys()) + '\n'
+                if self.headers is None:
+                    self.headers = element.keys()
+                csv_string = ','.join(self.headers) + '\n'
             
+            if len(self.headers) != len(element.keys()):
+                print(f'Missing some field for dict {element}')
+
             # Flatten all array items
             for index, key in enumerate(element):
                 if type(element[key]) is list:
