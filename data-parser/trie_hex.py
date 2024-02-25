@@ -29,7 +29,7 @@ class Trie():
         try:
             found = self.datrie[word] == node_type
         except:
-            pass
+            found = False
         
         self.lookup_time += time.perf_counter() - start_time
         return found
