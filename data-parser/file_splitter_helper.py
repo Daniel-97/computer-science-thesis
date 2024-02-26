@@ -6,7 +6,7 @@ import copy
 
 class FileSplitterHelper:
 
-    def __init__(self, file_prefix: str, output_folder: str, max_file_size_mb: int, file_format: str):
+    def __init__(self, file_prefix: str, output_folder: str, max_file_size_mb: int, file_format: str, headers: list[str]):
         self.file_prefix = file_prefix
         self.output_folder = output_folder
         self.max_file_size = max_file_size_mb * 1000000
@@ -15,7 +15,7 @@ class FileSplitterHelper:
         self.file_size = 0
         self.file_number = -1
         self.total_row_saved = 0
-        self.headers = None
+        self.headers = headers
 
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
 
@@ -51,15 +51,20 @@ class FileSplitterHelper:
         if self.format == "csv":
             csv_string = ''
             if if_first_row:
-                if self.headers is None:
-                    self.headers = element.keys() #todo header and data must be of the same type
                 csv_string = ','.join(self.headers) + '\n'
             
-            if len(self.headers) != len(element.keys()):
-                print(f'Missing some field for dict {element}')
+            if len(element.keys()) > len(self.headers):
+                for key in element.keys():
+                    if key not in self.headers and key != 'contractAddress':
+                        print(f'Missing properties in csv headers: {key}')
 
             # Flatten all array items
-            for index, key in enumerate(element):
+            for index, key in enumerate(self.headers):
+
+                if key not in element:
+                    element[key] = None
+                    continue
+
                 if type(element[key]) is list:
                     csv_string += (',' if index > 0 else '') + ';'.join(element[key])
                 else:
