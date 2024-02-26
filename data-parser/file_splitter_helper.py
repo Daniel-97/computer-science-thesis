@@ -1,13 +1,10 @@
 from pathlib import Path
 import json
-import csv
-import io
-import copy
-import shutil
+from utils import read_headers
 
 class FileSplitterHelper:
 
-    def __init__(self, file_path: str, max_file_size_mb: int, headers: list[str]):
+    def __init__(self, file_path: str, max_file_size_mb: int, headers_path: str):
         self.file_prefix = file_path.split('/')[-1].split('.')[0]
         self.format = file_path.split('.')[-1]
         self.output_folder = file_path.replace(self.file_prefix, '')
@@ -16,9 +13,10 @@ class FileSplitterHelper:
         self.file_size = 0
         self.file_number = -1
         self.total_row_saved = 0
-        self.headers = headers
+        self.headers = read_headers(headers_path)
 
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
+
 
     def _file_size(self):
         return self.file_size
