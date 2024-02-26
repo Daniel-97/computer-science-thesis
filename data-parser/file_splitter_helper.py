@@ -7,7 +7,7 @@ class FileSplitterHelper:
     def __init__(self, file_path: str, max_file_size_mb: int, headers_path: str):
         self.file_prefix = file_path.split('/')[-1].split('.')[0]
         self.format = file_path.split('.')[-1]
-        self.output_folder = file_path.replace(self.file_prefix, '')
+        self.output_folder = file_path.replace(file_path.split('/')[-1], '')
         self.max_file_size = max_file_size_mb * 1000000
         self.file = None
         self.file_size = 0
