@@ -1,23 +1,18 @@
 from file_splitter_helper import FileSplitterHelper
 from abstract_model_parser import AbstractModelParser
 from trie_hex import Trie
-
-ACCOUNT_HEADERS = ['account_address', 'account_type']
-
-CREATION_HEADERS = ['hash','blockHash','blockNumber','block_difficulty','block_extraData','block_gasLimit','block_gasUsed','block_hash','block_minerAddress','block_minerType','block_mixHash','block_nonce','block_number','block_ommerCount','block_parentHash','block_receiptsRoot','block_sha3Uncles','block_stateRoot','block_timestamp','block_totalDifficulty','block_transactionsRoot','contractAddress','cumulativeGasUsed','fromAddress','gas','gasPrice','gasUsed','logs_address','logs_block_number','logs_data','logs_index','logs_topic','logs_transaction_hash','logs_transaction_index','logs_type','nonce','root','status','toAddress','transactionIndex','value']
-INVOCATION_HEADERS = ['hash','blockHash','blockNumber','block_difficulty','block_extraData','block_gasLimit','block_gasUsed','block_hash','block_minerAddress','block_minerType','block_mixHash','block_nonce','block_number','block_ommerCount','block_parentHash','block_receiptsRoot','block_sha3Uncles','block_stateRoot','block_timestamp','block_totalDifficulty','block_transactionsRoot','cumulativeGasUsed','fromAddress','gas','gasPrice','gasUsed','input','logs_address','logs_block_number','logs_data','logs_index','logs_topic','logs_transaction_hash','logs_transaction_index','logs_type','nonce','root','status','toAddress','transactionIndex','value']
-TRANSFER_HEADERS = ['hash','blockHash','blockNumber','block_difficulty','block_extraData','block_gasLimit','block_gasUsed','block_hash','block_minerAddress','block_minerType','block_mixHash','block_nonce','block_number','block_ommerCount','block_parentHash','block_receiptsRoot','block_sha3Uncles','block_stateRoot','block_timestamp','block_totalDifficulty','block_transactionsRoot','cumulativeGasUsed','fromAddress','gas','gasPrice','gasUsed','input','nonce','root','status','toAddress','transactionIndex','value']
+from utils import read_headers
 
 class SimpleModelParser(AbstractModelParser):
 
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
         dump_name = input_file_name.split('_')[0]
-        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format, ACCOUNT_HEADERS)
-        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format, TRANSFER_HEADERS)
-        self._invocation_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, INVOCATION_HEADERS)
-        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format, CREATION_HEADERS)
-        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format, TRANSFER_HEADERS)
+        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model2/account_node_headers.csv'))
+        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/transfer_rel_headers.csv'))
+        self._invocation_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/invocation_rel_headers.csv'))
+        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/creation_rel_headers.csv'))
+        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/unk_rel_headers.csv'))
 
     def parse_block(self, block: dict):
         pass
