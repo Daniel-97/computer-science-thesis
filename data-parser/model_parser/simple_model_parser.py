@@ -5,14 +5,14 @@ from utils import read_headers
 
 class SimpleModelParser(AbstractModelParser):
 
-    def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
+    def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
         dump_name = input_file_name.split('_')[0]
-        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model2/account_node_headers.csv'))
-        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/transfer_rel_headers.csv'))
-        self._invocation_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/invocation_rel_headers.csv'))
-        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/creation_rel_headers.csv'))
-        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model2/unk_rel_headers.csv'))
+        self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-account.{format}', max_file_size_mb, read_headers('headers/model2/account_node_headers.csv'))
+        self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-transfer.{format}', max_file_size_mb, read_headers('headers/model2/transfer_rel_headers.csv'))
+        self._invocation_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-invocation.{format}', max_file_size_mb, read_headers('headers/model2/invocation_rel_headers.csv'))
+        self._creation_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-creation.{format}', max_file_size_mb, read_headers('headers/model2/creation_rel_headers.csv'))
+        self._unk_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-unk.{format}', max_file_size_mb, read_headers('headers/model2/unk_rel_headers.csv'))
 
     def parse_block(self, block: dict):
         pass

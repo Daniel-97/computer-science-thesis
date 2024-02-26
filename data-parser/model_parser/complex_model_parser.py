@@ -5,24 +5,24 @@ from utils import read_headers
 
 class ComplexModelParser(AbstractModelParser):
 
-    def __init__(self,input_file_name: str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
+    def __init__(self,input_file_name: str, output_folder: str, max_file_size_mb: int, format: str) -> None:
         out_folder = f'{output_folder}/model1-data'
         dump_name = input_file_name.split('_')[0]
         # NODES
-        self._block_splitter = FileSplitterHelper(f'{dump_name}-blocks', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model1/block_node_headers.csv'))
-        self._transaction_splitter = FileSplitterHelper(f'{dump_name}-txs', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model1/txs_node_headers.csv'))
-        self._account_splitter = FileSplitterHelper(f'{dump_name}-account', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model1/account_node_headers.csv'))
-        self._log_splitter = FileSplitterHelper(f'{dump_name}-log', f'{out_folder}/nodes/', max_file_size_mb, file_format, read_headers('headers/model1/log_node_headers.csv'))
+        self._block_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-blocks.{format}', max_file_size_mb, read_headers('headers/model1/block_node_headers.csv'))
+        self._transaction_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-txs.{format}', max_file_size_mb, read_headers('headers/model1/txs_node_headers.csv'))
+        self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-account.{format}', max_file_size_mb, read_headers('headers/model1/account_node_headers.csv'))
+        self._log_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-log.{format}', max_file_size_mb, read_headers('headers/model1/log_node_headers.csv'))
 
         # REL
-        self._sent_splitter = FileSplitterHelper(f'{dump_name}-sent', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/sent_rel_headers.csv'))
-        self._contained_splitter = FileSplitterHelper(f'{dump_name}-contained', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/contain_rel_headers.csv'))
+        self._sent_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-sent.{format}', max_file_size_mb, read_headers('headers/model1/sent_rel_headers.csv'))
+        self._contained_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-contained.{format}', max_file_size_mb, read_headers('headers/model1/contain_rel_headers.csv'))
         #self._block_son_splitter = FileSplitterHelper(f'{dump_name}-son', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/son_rel_headers.csv'))
-        self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/transfer_rel_headers.csv'))
-        self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/creation_rel_headers.csv'))
-        self._invocation_rel_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/invocation_rel_headers.csv'))
-        self._emitted_splitter = FileSplitterHelper(f'{dump_name}-emitted', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/log_rel_headers.csv'))
-        self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/unk_rel_headers.csv'))
+        self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-transfer.{format}', max_file_size_mb, read_headers('headers/model1/transfer_rel_headers.csv'))
+        self._creation_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-creation.{format}', max_file_size_mb, read_headers('headers/model1/creation_rel_headers.csv'))
+        self._invocation_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-invocation.{format}', max_file_size_mb, read_headers('headers/model1/invocation_rel_headers.csv'))
+        self._emitted_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-emitted.{format}', max_file_size_mb, read_headers('headers/model1/log_rel_headers.csv'))
+        self._unk_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-unk.{format}', max_file_size_mb, read_headers('headers/model1/unk_rel_headers.csv'))
 
     def parse_block(self, block: dict):
         self._block_splitter.append(element=block)

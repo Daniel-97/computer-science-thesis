@@ -7,11 +7,11 @@ import shutil
 
 class FileSplitterHelper:
 
-    def __init__(self, file_prefix: str, output_folder: str, max_file_size_mb: int, file_format: str, headers: list[str]):
-        self.file_prefix = file_prefix
-        self.output_folder = output_folder
+    def __init__(self, file_path: str, max_file_size_mb: int, headers: list[str]):
+        self.file_prefix = file_path.split('/')[-1].split('.')[0]
+        self.format = file_path.split('.')[-1]
+        self.output_folder = file_path.replace(self.file_prefix, '')
         self.max_file_size = max_file_size_mb * 1000000
-        self.format = file_format
         self.file = None
         self.file_size = 0
         self.file_number = -1
