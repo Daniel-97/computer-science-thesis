@@ -17,9 +17,10 @@ class ComplexModelParser(AbstractModelParser):
         # REL
         self._sent_splitter = FileSplitterHelper(f'{dump_name}-sent', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/sent_rel_headers.csv'))
         self._contained_splitter = FileSplitterHelper(f'{dump_name}-contained', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/contain_rel_headers.csv'))
+        #self._block_son_splitter = FileSplitterHelper(f'{dump_name}-son', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/son_rel_headers.csv'))
         self._transfer_splitter = FileSplitterHelper(f'{dump_name}-transfer', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/transfer_rel_headers.csv'))
         self._creation_splitter = FileSplitterHelper(f'{dump_name}-creation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/creation_rel_headers.csv'))
-        self._invocation_rel_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/sent_rel_headers.csv'))
+        self._invocation_rel_splitter = FileSplitterHelper(f'{dump_name}-invocation', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/invocation_rel_headers.csv'))
         self._emitted_splitter = FileSplitterHelper(f'{dump_name}-emitted', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/log_rel_headers.csv'))
         self._unk_rel_splitter = FileSplitterHelper(f'{dump_name}-unk', f'{out_folder}/rel/', max_file_size_mb, file_format, read_headers('headers/model1/unk_rel_headers.csv'))
 
@@ -28,6 +29,7 @@ class ComplexModelParser(AbstractModelParser):
     
     def parse_eoa_transaction(self, transaction: dict):
         self._sent_splitter.append(element={'account_address': transaction['fromAddress'], 'txs_hash': transaction['hash']})
+        self._contained_splitter.append(element={'txs_hash': transaction['hash'], 'block_hash': transaction['blockHash']})
         self._transaction_splitter.append(element=transaction)
         self._transfer_splitter.append(element={'txs_hash': transaction['hash'], 'account_address': transaction['toAddress']})
 

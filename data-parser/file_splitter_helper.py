@@ -3,6 +3,7 @@ import json
 import csv
 import io
 import copy
+import shutil
 
 class FileSplitterHelper:
 
@@ -50,8 +51,8 @@ class FileSplitterHelper:
 
         if self.format == "csv":
             csv_string = ''
-            if if_first_row:
-                csv_string = ','.join(self.headers) + '\n'
+            # if if_first_row:
+            #     csv_string = ','.join(self.headers) + '\n'
             
             if len(element.keys()) > len(self.headers):
                 for key in element.keys():
