@@ -1,7 +1,9 @@
 from pathlib import Path
 import json
 from utils import read_headers
+import gzip
 
+ENABLE_COMPRESSION = False
 class FileSplitterHelper:
 
     def __init__(self, file_path: str, max_file_size_mb: int, headers_path: str):
@@ -23,14 +25,15 @@ class FileSplitterHelper:
     
     def _start_new_file(self):
         self.file_number += 1
-        self.file = open(self._file_name(), 'w')
-        self.file.close()
-        
-        self.file = open(self._file_name(), 'a') #open the file in append mode
+        if ENABLE_COMPRESSION:
+            self.file = gzip.GzipFile(self._file_name(), 'wb')
+        else:
+            self.file = open(self._file_name(), 'w')
 
     def append(self, element: dict):
         
         row = self._generate_row(element)
+        row = row.encode() if ENABLE_COMPRESSION else row
 
         # If the actual file is bigger than the max file size, start a new one and close the old one
         if (self.max_file_size > 0 and (self._file_size() + len(row)) > self.max_file_size) or self._file_size() == 0:
@@ -90,4 +93,6 @@ class FileSplitterHelper:
             self.file_size = 0
 
     def _file_name(self):
-        return f'{self.output_folder}/{self.file_prefix}-{self.file_number}.{self.format}'
+        file_name = f'{self.output_folder}/{self.file_prefix}-{self.file_number}.{self.format}'
+        file_name +=  '.gz' if ENABLE_COMPRESSION else ''
+        return file_name
