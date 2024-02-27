@@ -7,6 +7,7 @@ the destination address of the transaction.
 ### model1 
 bin/neo4j-admin database import incremental \
 --force \
+--stage=all \
 --verbose \
 --delimiter="," \
 --array-delimiter=";" \

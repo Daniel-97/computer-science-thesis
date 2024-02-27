@@ -1,1 +1,1 @@
-hash:ID(Transaction),blockHash,blockNumber,cumulativeGasUsed,fromAddress,gas,gasPrice,gasUsed,input,nonce,root,status,toAddress,transactionIndex,value,contractAddress
+hash:ID(Transaction){label:Transaction},blockHash,blockNumber,cumulativeGasUsed,fromAddress,gas,gasPrice,gasUsed,input,nonce,root,status,toAddress,transactionIndex,value,contractAddress

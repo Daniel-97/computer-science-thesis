@@ -1,1 +1,1 @@
-account_address:ID(Account),account_type
+account_address:ID(Account){label:Account},account_type
