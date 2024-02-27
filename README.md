@@ -5,7 +5,8 @@ the destination address of the transaction.
 ## neo4j-admin import
 
 ### model1 
-bin/neo4j-admin database import full \
+bin/neo4j-admin database import incremental \
+--force \
 --verbose \
 --delimiter="," \
 --array-delimiter=";" \
