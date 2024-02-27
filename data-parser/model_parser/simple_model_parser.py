@@ -8,11 +8,11 @@ class SimpleModelParser(AbstractModelParser):
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
         dump_name = input_file_name.split('_')[0]
-        self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/{dump_name}-account.{format}', max_file_size_mb, 'headers/model2/account_node_headers.csv')
-        self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-transfer.{format}', max_file_size_mb, 'headers/model2/transfer_rel_headers.csv')
-        self._invocation_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-invocation.{format}', max_file_size_mb, 'headers/model2/invocation_rel_headers.csv')
-        self._creation_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-creation.{format}', max_file_size_mb, 'headers/model2/creation_rel_headers.csv')
-        self._unk_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/{dump_name}-unk.{format}', max_file_size_mb, 'headers/model2/unk_rel_headers.csv')
+        self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/account-{dump_name}.{format}', max_file_size_mb, 'headers/model2/account_node_headers.csv')
+        self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/transfer-{dump_name}.{format}', max_file_size_mb, 'headers/model2/transfer_rel_headers.csv')
+        self._invocation_splitter = FileSplitterHelper(f'{out_folder}/rel/invocation-{dump_name}.{format}', max_file_size_mb, 'headers/model2/invocation_rel_headers.csv')
+        self._creation_splitter = FileSplitterHelper(f'{out_folder}/rel/creation-{dump_name}.{format}', max_file_size_mb, 'headers/model2/creation_rel_headers.csv')
+        self._unk_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/unk-{dump_name}.{format}', max_file_size_mb, 'headers/model2/unk_rel_headers.csv')
 
         copy_tree('headers/model2', f'{out_folder}/headers')
 

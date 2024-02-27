@@ -90,4 +90,4 @@ class FileSplitterHelper:
             self.file_size = 0
 
     def _file_name(self):
-        return f'{self.output_folder}/{self.file_prefix}{self.file_number}.{self.format}'
+        return f'{self.output_folder}/{self.file_prefix}-{self.file_number}.{self.format}'

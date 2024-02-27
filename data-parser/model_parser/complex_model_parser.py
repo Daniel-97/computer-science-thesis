@@ -10,21 +10,21 @@ class ComplexModelParser(AbstractModelParser):
         dump_name = input_file_name.split('_')[0]
         # NODES
         nodes_folder = f'{out_folder}/nodes'
-        self._block_splitter = FileSplitterHelper(f'{nodes_folder}/{dump_name}-blocks.{format}', max_file_size_mb, 'headers/model1/block_node_headers.csv')
-        self._transaction_splitter = FileSplitterHelper(f'{nodes_folder}/{dump_name}-txs.{format}', max_file_size_mb, 'headers/model1/txs_node_headers.csv')
-        self._account_splitter = FileSplitterHelper(f'{nodes_folder}/{dump_name}-account.{format}', max_file_size_mb, 'headers/model1/account_node_headers.csv')
-        self._log_splitter = FileSplitterHelper(f'{nodes_folder}/{dump_name}-log.{format}', max_file_size_mb, 'headers/model1/log_node_headers.csv')
+        self._block_splitter = FileSplitterHelper(f'{nodes_folder}/blocks-{dump_name}.{format}', max_file_size_mb, 'headers/model1/block_node_headers.csv')
+        self._transaction_splitter = FileSplitterHelper(f'{nodes_folder}/txs-{dump_name}.{format}', max_file_size_mb, 'headers/model1/txs_node_headers.csv')
+        self._account_splitter = FileSplitterHelper(f'{nodes_folder}/account-{dump_name}.{format}', max_file_size_mb, 'headers/model1/account_node_headers.csv')
+        self._log_splitter = FileSplitterHelper(f'{nodes_folder}/log-{dump_name}.{format}', max_file_size_mb, 'headers/model1/log_node_headers.csv')
 
         # REL
         rel_folder = f'{out_folder}/rel'
-        self._sent_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-sent.{format}', max_file_size_mb, 'headers/model1/sent_rel_headers.csv')
-        self._contained_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-contained.{format}', max_file_size_mb, 'headers/model1/contain_rel_headers.csv')
-        #self._block_son_splitter = FileSplitterHelper(f'{dump_name}-son', f'{rel_folder}/', max_file_size_mb, file_format, 'headers/model1/son_rel_headers.csv'))
-        self._transfer_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-transfer.{format}', max_file_size_mb, 'headers/model1/transfer_rel_headers.csv')
-        self._creation_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-creation.{format}', max_file_size_mb, 'headers/model1/creation_rel_headers.csv')
-        self._invocation_rel_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-invocation.{format}', max_file_size_mb, 'headers/model1/invocation_rel_headers.csv')
-        self._emitted_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-emitted.{format}', max_file_size_mb, 'headers/model1/log_rel_headers.csv')
-        self._unk_rel_splitter = FileSplitterHelper(f'{rel_folder}/{dump_name}-unk.{format}', max_file_size_mb, 'headers/model1/unk_rel_headers.csv')
+        self._sent_splitter = FileSplitterHelper(f'{rel_folder}/sent-{dump_name}.{format}', max_file_size_mb, 'headers/model1/sent_rel_headers.csv')
+        self._contained_splitter = FileSplitterHelper(f'{rel_folder}/contained-{dump_name}.{format}', max_file_size_mb, 'headers/model1/contain_rel_headers.csv')
+        #self._block_son_splitter = FileSplitterHelper(f'son', f'{rel_folder}/', max_file_size_mb, file_format, 'headers/model1/son_rel_headers.csv'))
+        self._transfer_splitter = FileSplitterHelper(f'{rel_folder}/transfer-{dump_name}.{format}', max_file_size_mb, 'headers/model1/transfer_rel_headers.csv')
+        self._creation_splitter = FileSplitterHelper(f'{rel_folder}/creation-{dump_name}.{format}', max_file_size_mb, 'headers/model1/creation_rel_headers.csv')
+        self._invocation_rel_splitter = FileSplitterHelper(f'{rel_folder}/invocation-{dump_name}.{format}', max_file_size_mb, 'headers/model1/invocation_rel_headers.csv')
+        self._emitted_splitter = FileSplitterHelper(f'{rel_folder}/emitted-{dump_name}.{format}', max_file_size_mb, 'headers/model1/log_rel_headers.csv')
+        self._unk_rel_splitter = FileSplitterHelper(f'{rel_folder}/unk-{dump_name}.{format}', max_file_size_mb, 'headers/model1/unk_rel_headers.csv')
 
         copy_tree('headers/model1', f'{out_folder}/headers')
 
