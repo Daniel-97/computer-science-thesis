@@ -13,7 +13,7 @@ bin/neo4j-admin database import incremental \
 --delimiter="," \
 --array-delimiter=";" \
 --skip-duplicate-nodes \
---report-file=report.txt \
+--report-file=report-model1.txt \
 --nodes=Block=import/output/model1-data/headers/block_node_headers.csv,import/output/model1-data/nodes/blocks.\* \
 --nodes=Account=import/output/model1-data/headers/account_node_headers.csv,import/output/model1-data/nodes/account.\* \
 --nodes=Transaction=import/output/model1-data/headers/txs_node_headers.csv,import/output/model1-data/nodes/txs.\* \
@@ -27,13 +27,15 @@ bin/neo4j-admin database import incremental \
 model1
 
 ### model2
-bin/neo4j-admin database import full \
+bin/neo4j-admin database import incremental \
+--force \
+--stage=all \
 --verbose \
 --delimiter="," \
 --array-delimiter=";" \
 --skip-duplicate-nodes \
 --overwrite-destination=true \
---report-file=report-model2-import.txt \
+--report-file=report-model2.txt \
 --nodes=Account=import/output/model2-data/headers/account_node_headers.csv,import/output/model2-data/nodes/account.\* \
 --relationships=CREATED=import/output/model2-data/headers/creation_rel_headers.csv,import/output/model2-data/rel/creation.\* \
 --relationships=INVOKED=import/output/model2-data/headers/invocation_rel_headers.csv,import/output/model2-data/rel/invocation.\* \
