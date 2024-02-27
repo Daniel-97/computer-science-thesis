@@ -3,6 +3,7 @@ This tool parse json file full of ethereum transaction and split them in differe
 the destination address of the transaction.
 
 ## neo4j-admin import
+For full import change incremental argument 'incremental' with 'full' and remove --force --stage
 
 ### model1 
 bin/neo4j-admin database import incremental \
