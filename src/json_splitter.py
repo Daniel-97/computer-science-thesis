@@ -199,18 +199,18 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', required=True, help="Output folder", type=str)
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-oh','--only-heuristic', action=argparse.BooleanOptionalAction, help="Use only the heuristic classification (no local eth client)", type=bool, default=False)
+    parser.add_argument('-oh','--heuristic', action='store_true', help="Use only the heuristic classification (no local eth client)", default=False)
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
-
+    
     # Init ethereum json parser
     ethereum_parser = EthereumJsonParser(
         output_folder=args.output,
         input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
-        only_heuristic=args.only_heuristic,
+        only_heuristic=args.heuristic,
     )
 
     # Start parsing
