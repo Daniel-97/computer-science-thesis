@@ -1,5 +1,5 @@
 import ijson
-from argparse import ArgumentParser
+from argparse import ArgumentParser,BooleanOptionalAction
 from eth._utils import address
 from eth_utils import to_canonical_address
 from trie_hex import Trie, NodeType
@@ -7,6 +7,7 @@ from model_parser.complex_model_parser import ComplexModelParser
 from model_parser.simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
 import gzip
+from dotenv import load_dotenv
 
 class EthereumJsonParser:
 
@@ -169,8 +170,7 @@ class EthereumJsonParser:
                     #Unknown destination address, need to use eth client
                     else:
 
-                        #print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
-
+                        print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
                         # If only heuristic is true, do not use local eth client for node classification
                         if self.only_heuristic:
                             self.trie.add(to_address[2:], NodeType.UNK)
@@ -179,7 +179,6 @@ class EthereumJsonParser:
                                 self.model2_parser.parse_unknown_transaction(transaction, block)
 
                         else:
-
                             if self.eth_client.is_contract(to_address):
                                 self.trie.add(to_address[2:], NodeType.SC)
                                 if parse_block:
@@ -192,13 +191,15 @@ class EthereumJsonParser:
                                     self.model2_parser.parse_eoa_transaction(transaction, block)
 
 if __name__ == "__main__":
+
+    load_dotenv()
     # Simple argument parser
     parser = ArgumentParser(description="json splitter CLI")
     parser.add_argument('-i', '--input', required=True, help="Input file", type=str)
     parser.add_argument('-o', '--output', required=True, help="Output folder", type=str)
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-oh','--only-heuristic', required=True, help="Use only the heuristic classification (no local eth client)", type=bool)
+    parser.add_argument('-oh','--only-heuristic', action=BooleanOptionalAction, help="Use only the heuristic classification (no local eth client)", type=bool, default=False)
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()

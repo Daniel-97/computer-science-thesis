@@ -2,3 +2,4 @@ data-parser/output
 **/__pycache__/
 .venv
 data-parser/trie_dump/
+data-parser/.env

@@ -2,10 +2,28 @@
 This tool parse json file full of ethereum transaction and split them in different file based on
 the destination address of the transaction.
 
+## Build and run
+
+### Environment
+Create a `.env` file in the `src` directory, using `.env.example` as a template or manually pass the env variable to the script.
+
+### Run
+```bash
+python json_splitter.py \
+-i /run/media/daniele/Dati/Università/Informatica/Tesi/eth_dumps/dump0_0-999999.json.gz \
+-o ./output \
+-s -1 \
+--format csv \
+--start-block 0 \
+--end-block 2000000 \
+--only-heuristic
+```
+
 ## neo4j-admin import
 For full import change incremental argument 'incremental' with 'full' and remove --force --stage
 
-### model1 
+### model1 import example
+```bash
 bin/neo4j-admin database import incremental \
 --force \
 --stage=all \
@@ -25,8 +43,10 @@ bin/neo4j-admin database import incremental \
 --relationships=TRANSFERRED=import/output/model1-data/headers/transfer_rel_headers.csv,import/output/model1-data/rel/transfer.\* \
 --relationships=TO=import/output/model1-data/headers/unk_rel_headers.csv,import/output/model1-data/rel/unk.\* \
 model1
+```
 
-### model2
+### model2 import example
+```bash
 bin/neo4j-admin database import incremental \
 --force \
 --stage=all \
@@ -42,3 +62,4 @@ bin/neo4j-admin database import incremental \
 --relationships=TRANSFERRED=import/output/model2-data/headers/transfer_rel_headers.csv,import/output/model2-data/rel/transfer.\* \
 --relationships=TO=import/output/model2-data/headers/unk_rel_headers.csv,import/output/model2-data/rel/unk.\* \
 model2
+```
