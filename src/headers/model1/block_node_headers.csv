@@ -1,0 +1,1 @@
+hash:ID(Block){label:Block},difficulty,extraData,gasLimit,gasUsed,minerAddress,minerType,mixHash,nonce,number,ommerCount,parentHash,receiptsRoot,sha3Uncles,stateRoot,timestamp,totalDifficulty,transactionsRoot

@@ -1,14 +1,20 @@
 from file_splitter_helper import FileSplitterHelper
 from abstract_model_parser import AbstractModelParser
+from trie_hex import Trie
+from distutils.dir_util import copy_tree
 
 class SimpleModelParser(AbstractModelParser):
 
-    def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, file_format: str) -> None:
+    def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
-        self._eoa_transaction_splitter = FileSplitterHelper(f'{input_file_name}-eoa-txs', f'{out_folder}/eoa-txs', max_file_size_mb, file_format)
-        self._contract_transaction_splitter = FileSplitterHelper(f'{input_file_name}-sc-txs', f'{out_folder}/sc-txs', max_file_size_mb, file_format)
-        self._contract_creation_splitter = FileSplitterHelper(f'{input_file_name}-sc-creation', f'{out_folder}/sc-creation', max_file_size_mb, file_format)
-        self._unknown_transaction_splitter = FileSplitterHelper(f'{input_file_name}-unk-txs', f'{out_folder}/unk-txs', max_file_size_mb, file_format)
+        dump_name = input_file_name.split('_')[0]
+        self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/account-{dump_name}.{format}', max_file_size_mb, 'headers/model2/account_node_headers.csv')
+        self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/transfer-{dump_name}.{format}', max_file_size_mb, 'headers/model2/transfer_rel_headers.csv')
+        self._invocation_splitter = FileSplitterHelper(f'{out_folder}/rel/invocation-{dump_name}.{format}', max_file_size_mb, 'headers/model2/invocation_rel_headers.csv')
+        self._creation_splitter = FileSplitterHelper(f'{out_folder}/rel/creation-{dump_name}.{format}', max_file_size_mb, 'headers/model2/creation_rel_headers.csv')
+        self._unk_rel_splitter = FileSplitterHelper(f'{out_folder}/rel/unk-{dump_name}.{format}', max_file_size_mb, 'headers/model2/unk_rel_headers.csv')
+
+        copy_tree('headers/model2', f'{out_folder}/headers')
 
     def parse_block(self, block: dict):
         pass
@@ -16,44 +22,44 @@ class SimpleModelParser(AbstractModelParser):
     def parse_eoa_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._eoa_transaction_splitter.append(element=transaction)
+        self._transfer_splitter.append(element=transaction)
 
     def parse_contract_transaction(self, transaction: dict, block: dict):
         transaction = transaction.copy()
-
         block = self._add_dict_prefix(dict=block, prefix='block')
         transaction = {**transaction, **block}
-
         self._flatten_logs(transaction)
-
-        self._contract_transaction_splitter.append(element=transaction)
+        self._invocation_splitter.append(element=transaction)
 
     def parse_contract_creation(self, transaction: dict, block: dict):
         transaction = transaction.copy()
-
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-
         self._flatten_logs(transaction)
-
-        self._contract_creation_splitter.append(element=transaction)
+        self._creation_splitter.append(element=transaction)
 
     def parse_unknown_transaction(self, transaction: dict, block: dict):
         block = self._add_dict_prefix(dict=block,prefix='block')
         transaction = {**transaction, **block}
-        self._unknown_transaction_splitter.append(element=transaction)
+        self._unk_rel_splitter.append(element=transaction)
+
+    def parse_trie(self, trie: Trie):
+        for key, item in trie.datrie.items():
+            self._account_splitter.append(element={'address': f'0x{key}', 'account_type': item.value})
 
     def close_parser(self):
-        self._eoa_transaction_splitter.end_file()
-        self._contract_transaction_splitter.end_file()
-        self._contract_creation_splitter.end_file()
-        self._unknown_transaction_splitter.end_file()
+        self._account_splitter.end_file()
+        self._transfer_splitter.end_file()
+        self._invocation_splitter.end_file()
+        self._creation_splitter.end_file()
+        self._unk_rel_splitter.end_file()
 
         print("\nModel 2 (simple) stats:")
-        print("- total EOA transactions: ", self._eoa_transaction_splitter.total_row_saved)
-        print("- total contract transactions: ", self._contract_transaction_splitter.total_row_saved)
-        print("- total contract creation transactions: ", self._contract_creation_splitter.total_row_saved)
-        print("- total unknown transactions: ", self._unknown_transaction_splitter.total_row_saved)
+        print("- total address: ", self._account_splitter.total_row_saved)
+        print("- total transfer transaction: ", self._transfer_splitter.total_row_saved)
+        print("- total invocation transaction: ", self._invocation_splitter.total_row_saved)
+        print("- total creation transaction: ", self._creation_splitter.total_row_saved)
+        print("- total unk transaction: ", self._unk_rel_splitter.total_row_saved)
 
     def _add_dict_prefix(self, dict: dict, prefix: str):
         new_dict = {}
