@@ -2,6 +2,7 @@ import os
 import time
 from enum import Enum
 import datrie
+from pathlib import Path
 
 class NodeType(Enum):
     EOA = 1
@@ -36,6 +37,7 @@ class Trie:
         return found
         
     def save_trie(self):
+        Path('trie_dump').mkdir(parents=True, exist_ok=True)
         self.datrie.save(self.file_name)
     
             
