@@ -1,5 +1,5 @@
 import ijson
-from argparse import ArgumentParser,BooleanOptionalAction
+import argparse
 from eth._utils import address
 from eth_utils import to_canonical_address
 from trie_hex import Trie, NodeType
@@ -194,12 +194,12 @@ if __name__ == "__main__":
 
     load_dotenv()
     # Simple argument parser
-    parser = ArgumentParser(description="json splitter CLI")
+    parser = argparse.ArgumentParser(description="json splitter CLI")
     parser.add_argument('-i', '--input', required=True, help="Input file", type=str)
     parser.add_argument('-o', '--output', required=True, help="Output folder", type=str)
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-oh','--only-heuristic', action=BooleanOptionalAction, help="Use only the heuristic classification (no local eth client)", type=bool, default=False)
+    parser.add_argument('-oh','--only-heuristic', action=argparse.BooleanOptionalAction, help="Use only the heuristic classification (no local eth client)", type=bool, default=False)
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
