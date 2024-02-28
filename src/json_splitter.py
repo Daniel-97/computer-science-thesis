@@ -170,7 +170,7 @@ class EthereumJsonParser:
                     #Unknown destination address, need to use eth client
                     else:
 
-                        print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
+                        #print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
                         # If only heuristic is true, do not use local eth client for node classification
                         if self.only_heuristic:
                             self.trie.add(to_address[2:], NodeType.UNK)
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
-    
+
     # Init ethereum json parser
     ethereum_parser = EthereumJsonParser(
         output_folder=args.output,
