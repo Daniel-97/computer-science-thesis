@@ -7,7 +7,7 @@ class SimpleModelParser(AbstractModelParser):
 
     def __init__(self, input_file_name:str, output_folder: str, max_file_size_mb: int, format: str) -> None:
         out_folder = f'{output_folder}/model2-data'
-        dump_name = input_file_name.split('_')[0]
+        dump_name = input_file_name.split('.')[0]
         self._account_splitter = FileSplitterHelper(f'{out_folder}/nodes/account-{dump_name}.{format}', max_file_size_mb, 'headers/model2/account_node_headers.csv')
         self._transfer_splitter = FileSplitterHelper(f'{out_folder}/rel/transfer-{dump_name}.{format}', max_file_size_mb, 'headers/model2/transfer_rel_headers.csv')
         self._invocation_splitter = FileSplitterHelper(f'{out_folder}/rel/invocation-{dump_name}.{format}', max_file_size_mb, 'headers/model2/invocation_rel_headers.csv')
