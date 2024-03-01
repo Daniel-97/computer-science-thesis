@@ -100,7 +100,6 @@ class EthereumJsonParser:
 
             # Loop through the array
             for block in ijson.items(file, "item"):
-                breakpoint()
                 
                 if close:
                     break
