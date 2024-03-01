@@ -68,7 +68,6 @@ class EthereumJsonParser:
         if "ommers" in block:
             del block["ommers"]
         if "miner" in block:
-            block["minerType"] = block.get("miner").get("@type")
             block["minerAddress"] = block.get("miner").get("address")
             del block["miner"]
         
@@ -101,6 +100,7 @@ class EthereumJsonParser:
 
             # Loop through the array
             for block in ijson.items(file, "item"):
+                breakpoint()
                 
                 if close:
                     break
