@@ -17,12 +17,10 @@ class EthereumJsonParser:
             input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
-            only_heuristic: bool,
         ):
 
         # PARAMETERS
         self.file_format = file_format
-        self.only_heuristic = only_heuristic
 
         # ETH CLIENT
         self.eth_client = EthereumClient()
@@ -40,7 +38,6 @@ class EthereumJsonParser:
     
     def close(self):
         print(f"Tot. parsed transaction: {self.parsed_transaction}")
-        self.trie.save_trie()
         self.model1_parser.parse_trie(self.trie)
         self.model2_parser.parse_trie(self.trie)
         self.model1_parser.close_parser()
@@ -116,17 +113,15 @@ class EthereumJsonParser:
                 if end_block_hex is not None and block['number'] == end_block_hex:
                     close = True
 
-                # Skip block with zero transaction
-                if "transactions" not in block:
+                if not parse_block or 'transactions' not in block:
                     continue
 
                 transactions = block['transactions']
                 del block['transactions']
                 
-                if parse_block:
-                    self.clean_block(block)
-                    self.convert_block_field(block)
-                    self.model1_parser.parse_block(block)
+                self.clean_block(block)
+                self.convert_block_field(block)
+                self.model1_parser.parse_block(block)
 
                 for transaction in transactions:
                     self.parsed_transaction += 1
@@ -135,7 +130,6 @@ class EthereumJsonParser:
 
                     from_address = transaction.get('fromAddress')
                     to_address = transaction.get('toAddress')
-                    self.trie.add(from_address[2:], NodeType.EOA) # Add the EOA address to the trie
 
                     # If the destination address is None then it is a smart contract creation
                     if to_address is None:
@@ -145,50 +139,23 @@ class EthereumJsonParser:
                             address=to_canonical_address(transaction.get("fromAddress")),
                             nonce=int(transaction.get("nonce"), 16)
                         )
-                        #Add the address to the trie       
-                        self.trie.add(contract_address.hex(), NodeType.SC)
                         transaction['contractAddress'] = "0x" + contract_address.hex()
-
-                        # call model parser
-                        if parse_block:
-                            self.model1_parser.parse_contract_creation(transaction)
-                            self.model2_parser.parse_contract_creation(transaction, block)
+                        self.model1_parser.parse_contract_creation(transaction)
+                        self.model2_parser.parse_contract_creation(transaction, block)
 
                     # If there are logs in the transaction, or is in the trie of SC is an SC
                     elif 'logs' in transaction or self.trie.find(to_address[2:], NodeType.SC):
-                        self.trie.add(to_address[2:], NodeType.SC) # Add the destination address to the trie
-                        if parse_block:
-                            self.model1_parser.parse_contract_transaction(transaction)
-                            self.model2_parser.parse_contract_transaction(transaction, block)
+                        self.model1_parser.parse_contract_transaction(transaction)
+                        self.model2_parser.parse_contract_transaction(transaction, block)
 
                     elif self.trie.find(to_address[2:], NodeType.EOA):
+                        self.model1_parser.parse_eoa_transaction(transaction)
+                        self.model2_parser.parse_eoa_transaction(transaction, block)
 
-                        if parse_block:
-                            self.model1_parser.parse_eoa_transaction(transaction)
-                            self.model2_parser.parse_eoa_transaction(transaction, block)
-
-                    #Unknown destination address, need to use eth client
                     else:
-
                         #print(f"Unknown destination address {to_address} for transaction {transaction['hash']}")
-                        # If only heuristic is true, do not use local eth client for node classification
-                        if self.only_heuristic:
-                            self.trie.add(to_address[2:], NodeType.UNK)
-                            if parse_block:
-                                self.model1_parser.parse_unknown_transaction(transaction)
-                                self.model2_parser.parse_unknown_transaction(transaction, block)
-
-                        else:
-                            if self.eth_client.is_contract(to_address):
-                                self.trie.add(to_address[2:], NodeType.SC)
-                                if parse_block:
-                                    self.model1_parser.parse_contract_transaction(transaction)
-                                    self.model2_parser.parse_contract_transaction(transaction, block)
-                            else:
-                                self.trie.add(to_address[2:], NodeType.EOA)
-                                if parse_block:
-                                    self.model1_parser.parse_eoa_transaction(transaction)
-                                    self.model2_parser.parse_eoa_transaction(transaction, block)
+                        self.model1_parser.parse_unknown_transaction(transaction)
+                        self.model2_parser.parse_unknown_transaction(transaction, block)
 
 if __name__ == "__main__":
 
@@ -199,7 +166,6 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', required=True, help="Output folder", type=str)
     parser.add_argument('-s', '--size', required=True, help="Max file size in mega bytes. -1 for no size limit", type=int)
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
-    parser.add_argument('-oh','--heuristic', action='store_true', help="Use only the heuristic classification (no local eth client)", default=False)
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     args = parser.parse_args()
@@ -209,8 +175,7 @@ if __name__ == "__main__":
         output_folder=args.output,
         input_file_path=args.input,
         max_file_size_mb=args.size,
-        file_format=args.format,
-        only_heuristic=args.heuristic,
+        file_format=args.format
     )
 
     # Start parsing
