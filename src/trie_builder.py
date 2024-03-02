@@ -31,9 +31,9 @@ def build_trie(file_path: str):
 
             elif 'logs' in transaction:
                 #Add the address to the trie       
-                trie.add(from_address[2:], NodeType.SC) # Add the EOA address to the trie
+                trie.add(to_address[2:], NodeType.SC) # Add the EOA address to the trie
             else:
-                trie.add(from_address[2:], NodeType.UNK)
+                trie.add(to_address[2:], NodeType.UNK)
                 unclassified_address += 1
 
     trie.save_trie()
