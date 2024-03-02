@@ -7,7 +7,17 @@ the destination address of the transaction.
 ### Environment
 Create a `.env` file in the `src` directory, using `.env.example` as a template or manually pass the env variable to the script.
 
-### Run
+### Run trie builder
+Build the trie used by the parser for address classification
+
+```bash
+python trie_builder.py \
+--input /data/backup/eth/blocks/output_0-999999.json.gz
+```
+
+### Run parser
+Generate the csv for both model A and model B for neo4j import
+
 ```bash
 python json_splitter.py \
 -i /run/media/daniele/Dati/Università/Informatica/Tesi/eth_dumps/dump0_0-999999.json.gz \
@@ -16,7 +26,6 @@ python json_splitter.py \
 --format csv \
 --start-block 0 \
 --end-block 2000000 \
---only-heuristic
 ```
 
 ## neo4j-admin import
