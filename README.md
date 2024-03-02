@@ -13,6 +13,7 @@ Build the trie used by the parser for address classification
 ```bash
 python trie_builder.py \
 --input /data/backup/eth/blocks/output_0-999999.json.gz
+--output trie_dump/trie.trie
 ```
 
 ### Run parser
@@ -26,6 +27,7 @@ python json_splitter.py \
 --format csv \
 --start-block 0 \
 --end-block 2000000 \
+--trie-path trie_dump/trie.trie
 ```
 
 ## neo4j-admin import

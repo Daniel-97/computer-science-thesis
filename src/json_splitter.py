@@ -17,6 +17,7 @@ class EthereumJsonParser:
             input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
+            trie_path: str
         ):
 
         # PARAMETERS
@@ -26,7 +27,8 @@ class EthereumJsonParser:
         self.eth_client = EthereumClient()
 
         # TRIE
-        self.trie = Trie('SC-EOA')
+        self.trie = Trie()
+        self.trie.load_trie(trie_path)
 
         # MODELS PARSER
         input_file_name = input_file_path.split('/')[-1].split('.')[0]
@@ -167,6 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
+    parser.add_argument('-tp', '--trie-path', required=True, help="Trie dump path", type=str)
     args = parser.parse_args()
 
     # Init ethereum json parser
@@ -174,7 +177,8 @@ if __name__ == "__main__":
         output_folder=args.output,
         input_file_path=args.input,
         max_file_size_mb=args.size,
-        file_format=args.format
+        file_format=args.format,
+        trie_path=args.trie_path
     )
 
     # Start parsing

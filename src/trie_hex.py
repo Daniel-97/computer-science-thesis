@@ -11,15 +11,9 @@ class NodeType(Enum):
 
 class Trie:
 
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.file_name = f'trie_dump/datrie-{name}.trie'
+    def __init__(self) -> None:
         self.datrie = datrie.Trie("0123456789abcdef")
         self.lookup_time = 0
-        if os.path.exists(self.file_name):
-            print(f'Start loading trie {name}')
-            self.datrie = datrie.Trie.load(self.file_name)
-            print(f'Loaded {len(self.datrie)} nodes from {name} trie')
 
     def add(self, word: str, node_type: NodeType) -> None: 
        self.datrie[word] = node_type
@@ -35,9 +29,14 @@ class Trie:
         
         self.lookup_time += time.perf_counter() - start_time
         return found
-        
-    def save_trie(self):
-        Path('trie_dump').mkdir(parents=True, exist_ok=True)
-        self.datrie.save(self.file_name)
+    
+    def load_trie(self, path: str):
+        if os.path.exists(path):
+            print(f'Start loading trie from {path}')
+            self.datrie = datrie.Trie.load(path)
+            print(f'Loaded {len(self.datrie)} nodes from {path} trie')
+
+    def save_trie(self, path: str):
+        self.datrie.save(path)
     
             
