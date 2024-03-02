@@ -5,10 +5,11 @@ from trie_hex import Trie, NodeType
 from eth._utils import address
 from eth_utils import to_canonical_address
 
-def build_trie(input_file_path: str, output_file_path:str):
+def build_trie(input_file_path: str, trie_file_dump:str):
 
     unclassified_address = 0
     trie = Trie()
+    trie.load_trie(trie_file_dump)
 
     with gzip.open(input_file_path, "rb") as file:
 
@@ -36,13 +37,13 @@ def build_trie(input_file_path: str, output_file_path:str):
                 trie.add(to_address[2:], NodeType.UNK)
                 unclassified_address += 1
 
-    trie.save_trie(output_file_path)
+    trie.save_trie(trie_file_dump)
     print(f'Unclassified address: {unclassified_address}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="json splitter CLI")
     parser.add_argument('-i', '--input', required=True, help="Input file", type=str)
-    parser.add_argument('-o', '--output', required=False, help="Output dump file", type=str)
+    parser.add_argument('-o', '--trie', required=False, help="Output trie dump file", type=str)
     args = parser.parse_args();
 
-    build_trie(args.input, args.output)
+    build_trie(args.input, args.trie)
