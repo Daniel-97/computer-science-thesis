@@ -14,7 +14,7 @@ def build_trie(input_file_path: str, trie_file_dump:str):
     with gzip.open(input_file_path, "rb") as file:
 
         for index,transaction in enumerate(ijson.items(file, 'item.transactions.item')):
-            print(f'Parsing transaction {index}\r', end=' ')
+            #print(f'Parsing transaction {index}\r', end=' ')
             # If the destination address is None then it is a smart contract creation
             from_address = transaction.get('from').get('address')
             to_address = transaction.get('to').get('address')
