@@ -169,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--format', required=True, help="File output format", choices=['json', 'csv'])
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
-    parser.add_argument('-tp', '--trie-path', required=True, help="Trie dump path", type=str)
+    parser.add_argument('-t', '--trie', required=True, help="Trie dump path", type=str)
     args = parser.parse_args()
 
     # Init ethereum json parser
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
-        trie_path=args.trie_path
+        trie_path=args.trie
     )
 
     # Start parsing
