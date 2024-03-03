@@ -18,17 +18,19 @@ class Trie:
     def add(self, word: str, node_type: NodeType) -> None: 
        self.datrie[word] = node_type
     
-    def find(self, word: str, node_type: NodeType) -> bool:
-
+    def find_by_type(self, word: str, node_type: NodeType) -> bool:
+        return self.find(word) == node_type
+    
+    def find(self, word: str):
         start_time = time.perf_counter()
-        found = False
+        node = None
         try:
-            found = self.datrie[word] == node_type
+            node = self.datrie[word]
         except:
-            found = False
+            pass
         
         self.lookup_time += time.perf_counter() - start_time
-        return found
+        return node
     
     def load_trie(self, path: str):
         if os.path.exists(path):

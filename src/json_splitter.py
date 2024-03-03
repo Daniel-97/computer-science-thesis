@@ -145,11 +145,11 @@ class EthereumJsonParser:
                         self.model2_parser.parse_contract_creation(transaction, block)
 
                     # If there are logs in the transaction, or is in the trie of SC is an SC
-                    elif 'logs' in transaction or self.trie.find(to_address[2:], NodeType.SC):
+                    elif 'logs' in transaction or self.trie.find_by_type(to_address[2:], NodeType.SC):
                         self.model1_parser.parse_contract_transaction(transaction)
                         self.model2_parser.parse_contract_transaction(transaction, block)
 
-                    elif self.trie.find(to_address[2:], NodeType.EOA):
+                    elif self.trie.find_by_type(to_address[2:], NodeType.EOA):
                         self.model1_parser.parse_eoa_transaction(transaction)
                         self.model2_parser.parse_eoa_transaction(transaction, block)
 

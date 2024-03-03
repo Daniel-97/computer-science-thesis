@@ -34,7 +34,9 @@ def build_trie(input_file_path: str, trie_file_dump:str):
             elif 'logs' in transaction:
                 #Add the address to the trie       
                 trie.add(to_address[2:], NodeType.SC) # Add the EOA address to the trie
-            else:
+            
+            # Check if the address is not already in the trie, otherwise we overwrite the old type
+            elif trie.find(to_address[2:]) is None:
                 trie.add(to_address[2:], NodeType.UNK)
                 unclassified_address += 1
 
