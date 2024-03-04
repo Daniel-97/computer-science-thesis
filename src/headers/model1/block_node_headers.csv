@@ -1,1 +1,1 @@
-hash:ID(Block){label:Block},difficulty,extraData,gasLimit,gasUsed,minerAddress,mixHash,nonce,number,ommerCount,parentHash,receiptsRoot,sha3Uncles,stateRoot,timestamp,totalDifficulty,transactionsRoot
+hash:ID(Block){label:Block},difficulty,extraData,gasLimit:long,gasUsed:long,minerAddress,mixHash,nonce,number:long,ommerCount,parentHash,receiptsRoot,sha3Uncles,stateRoot,timestamp:long,totalDifficulty,transactionsRoot

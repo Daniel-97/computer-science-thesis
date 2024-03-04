@@ -1,1 +1,1 @@
-address:ID(Account){label:Account},account_type
+address:ID(Account){label:Account},account_type:int

@@ -65,7 +65,6 @@ class FileSplitterHelper:
 
                 if key not in element:
                     element[key] = None
-                    continue
 
                 if type(element[key]) is list:
                     csv_string += (',' if index > 0 else '') + ';'.join(element[key])

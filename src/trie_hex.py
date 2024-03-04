@@ -40,5 +40,21 @@ class Trie:
 
     def save_trie(self, path: str):
         self.datrie.save(path)
+
+    def print_stat(self):
+        unk_address = eoa_address = sc_address = 0
+        for key in self.datrie.keys():
+            node_type = self.datrie[key] 
+            if node_type == NodeType.EOA:
+                eoa_address += 1
+            elif node_type == NodeType.SC:
+                sc_address += 1
+            else:
+                unk_address += 1
+
+        print(f"- Total address: {len(self.datrie)}")
+        print(f"- Total eoa address: {eoa_address}")
+        print(f"- Total sc address: {sc_address}")
+        print(f"- Total unk address: {unk_address}")
     
             

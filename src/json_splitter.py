@@ -132,9 +132,9 @@ class EthereumJsonParser:
                     self.clean_transaction(transaction)
                     self.convert_transaction_field(transaction)
 
-                    from_address = transaction.get('fromAddress')
                     to_address = transaction.get('toAddress')
-
+                    transaction['contractAddress'] = None
+                    
                     # If the destination address is None then it is a smart contract creation
                     if to_address is None:
                         del transaction['input'] # Contains the smart contract code
