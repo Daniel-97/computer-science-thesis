@@ -44,6 +44,7 @@ class ComplexModelParser(AbstractModelParser):
         if 'logs' in transaction:
             del transaction['logs']
         self._sent_splitter.append(element={'account_address': transaction['fromAddress'], 'txs_hash': transaction['hash']})
+        self._contained_splitter.append(element={'txs_hash': transaction['hash'], 'block_hash': transaction['blockHash']})
         self._transaction_splitter.append(element=transaction)
         self._invocation_rel_splitter.append(element={'txs_hash': transaction['hash'], 'account_address': transaction['toAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
@@ -54,12 +55,14 @@ class ComplexModelParser(AbstractModelParser):
         if 'logs' in transaction:
             del transaction['logs']
         self._sent_splitter.append(element={'account_address': transaction['fromAddress'], 'txs_hash': transaction['hash']})
+        self._contained_splitter.append(element={'txs_hash': transaction['hash'], 'block_hash': transaction['blockHash']})
         self._transaction_splitter.append(element=transaction)
         self._creation_splitter.append(element={'txs_hash': transaction['hash'], 'account_address': transaction['contractAddress']})
         self._parse_logs(logs=logs, transaction_hash=transaction['hash'])
 
     def parse_unknown_transaction(self, transaction: dict):
         self._sent_splitter.append(element={'account_address': transaction['fromAddress'], 'txs_hash': transaction['hash']})
+        self._contained_splitter.append(element={'txs_hash': transaction['hash'], 'block_hash': transaction['blockHash']})
         self._transaction_splitter.append(element=transaction)
         self._unk_rel_splitter.append(element={'txs_hash': transaction['hash'], 'account_address': transaction['toAddress']})
 
