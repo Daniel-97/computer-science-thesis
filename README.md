@@ -35,13 +35,12 @@ For full import change incremental argument 'incremental' with 'full' and remove
 
 ### model1 import example
 ```bash
-bin/neo4j-admin database import incremental \
---force \
---stage=all \
+bin/neo4j-admin database import full \
 --verbose \
 --delimiter="," \
 --array-delimiter=";" \
 --skip-duplicate-nodes \
+--skip-bad-relationships \
 --report-file=report-model1.txt \
 --nodes=Block=import/output/model1-data/headers/block_node_headers.csv,import/output/model1-data/nodes/blocks.\* \
 --nodes=Account=import/output/model1-data/headers/account_node_headers.csv,import/output/model1-data/nodes/account.\* \
@@ -53,14 +52,14 @@ bin/neo4j-admin database import incremental \
 --relationships=INVOKED=import/output/model1-data/headers/invocation_rel_headers.csv,import/output/model1-data/rel/invocation.\* \
 --relationships=TRANSFERRED=import/output/model1-data/headers/transfer_rel_headers.csv,import/output/model1-data/rel/transfer.\* \
 --relationships=TO=import/output/model1-data/headers/unk_rel_headers.csv,import/output/model1-data/rel/unk.\* \
+--relationships=CONTAINED=import/output/model1-data/headers/contain_rel_headers.csv,import/output/model1-data/rel/contained.\* \
+--relationships=CHILD_OF=import/output/model1-data/headers/block_child_rel_headers.csv,import/output/model1-data/rel/child-of.\* \
 model1
 ```
 
 ### model2 import example
 ```bash
-bin/neo4j-admin database import incremental \
---force \
---stage=all \
+bin/neo4j-admin database import full \
 --verbose \
 --delimiter="," \
 --array-delimiter=";" \

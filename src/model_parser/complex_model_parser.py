@@ -19,7 +19,7 @@ class ComplexModelParser(AbstractModelParser):
         rel_folder = f'{out_folder}/rel'
         self._sent_splitter = FileSplitterHelper(f'{rel_folder}/sent-{dump_name}.{format}', max_file_size_mb, 'headers/model1/sent_rel_headers.csv')
         self._contained_splitter = FileSplitterHelper(f'{rel_folder}/contained-{dump_name}.{format}', max_file_size_mb, 'headers/model1/contain_rel_headers.csv')
-        #self._block_son_splitter = FileSplitterHelper(f'son', f'{rel_folder}/', max_file_size_mb, file_format, 'headers/model1/son_rel_headers.csv'))
+        self._block_child_splitter = FileSplitterHelper(f'{rel_folder}/child-of-{dump_name}.{format}', max_file_size_mb, 'headers/model1/block_child_rel_headers.csv')
         self._transfer_splitter = FileSplitterHelper(f'{rel_folder}/transfer-{dump_name}.{format}', max_file_size_mb, 'headers/model1/transfer_rel_headers.csv')
         self._creation_splitter = FileSplitterHelper(f'{rel_folder}/creation-{dump_name}.{format}', max_file_size_mb, 'headers/model1/creation_rel_headers.csv')
         self._invocation_rel_splitter = FileSplitterHelper(f'{rel_folder}/invocation-{dump_name}.{format}', max_file_size_mb, 'headers/model1/invocation_rel_headers.csv')
@@ -30,6 +30,7 @@ class ComplexModelParser(AbstractModelParser):
 
     def parse_block(self, block: dict):
         self._block_splitter.append(element=block)
+        self._block_child_splitter.append(element={'block_hash': block['hash'], 'parent_block_hash': block['parentHash']})
     
     def parse_eoa_transaction(self, transaction: dict):
         self._sent_splitter.append(element={'account_address': transaction['fromAddress'], 'txs_hash': transaction['hash']})

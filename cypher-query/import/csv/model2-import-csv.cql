@@ -3,7 +3,6 @@
 
 // CONSTRAINT
 CREATE CONSTRAINT IF NOT EXISTS FOR (a: Account) REQUIRE a.address IS UNIQUE;
-CREATE CONSTRAINT IF NOT EXISTS FOR (contract: SmartContract) REQUIRE contract.address IS UNIQUE;
 
 // Transaction hash index
 CREATE INDEX transaction_rel_index IF NOT EXISTS FOR ()-[r: to]-() ON (r.hash);

@@ -58,7 +58,7 @@ class FileSplitterHelper:
             if len(element.keys()) > len(self.headers):
                 for key in element.keys():
                     if key not in self.headers and key != 'contractAddress':
-                        print(f'Missing properties in csv headers: {key}')
+                        print(f'Missing properties in csv headers! Key: {key} value: {element[key]}')
 
             # Flatten all array items
             for index, key in enumerate(self.headers):

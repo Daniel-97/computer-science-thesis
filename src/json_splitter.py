@@ -114,16 +114,19 @@ class EthereumJsonParser:
                 if end_block_hex is not None and block['number'] == end_block_hex:
                     close = True
 
-                if not parse_block or 'transactions' not in block:
+                if not parse_block:
                     continue
-
-                transactions = block['transactions']
-                del block['transactions']
                 
+                if 'transactions' in block:
+                    transactions = block['transactions']
+                    del block['transactions']
+                else:
+                    transactions = []
+
                 self.clean_block(block)
                 self.convert_block_field(block)
                 self.model1_parser.parse_block(block)
-
+                
                 for transaction in transactions:
                     self.parsed_transaction += 1
                     self.clean_transaction(transaction)
