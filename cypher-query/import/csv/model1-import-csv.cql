@@ -6,8 +6,6 @@ CREATE CONSTRAINT IF NOT EXISTS FOR (a: Account) REQUIRE a.address IS UNIQUE;
 CREATE CONSTRAINT IF NOT EXISTS FOR (t:Transaction) REQUIRE t.hash IS UNIQUE;
 CREATE CONSTRAINT IF NOT EXISTS FOR (block: Block) REQUIRE block.hash IS UNIQUE;
 CREATE CONSTRAINT IF NOT EXISTS FOR (log: Log) REQUIRE log.hash IS UNIQUE;
-CREATE CONSTRAINT IF NOT EXISTS FOR (contract: SmartContract) REQUIRE contract.address IS UNIQUE;
-
 
 // QUERY 1, EOA TRANSACTIONS
 :auto LOAD CSV WITH HEADERS FROM "file:///output/model1-data/eoa-transactions/eoa-transactions-1.csv" AS transaction
