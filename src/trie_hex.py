@@ -56,5 +56,22 @@ class Trie:
         print(f"- Total eoa address: {eoa_address}")
         print(f"- Total sc address: {sc_address}")
         print(f"- Total unk address: {unk_address}")
-    
-            
+
+    def dump_address(self, folder):
+        eoa = open(f'{folder}/eoa.csv', 'w')
+        sc = open(f'{folder}/sc.csv', 'w')
+        unk = open(f'{folder}/unk.csv', 'w')
+
+        for key in self.datrie.keys():
+            row = f'0x{key}\n'
+            node = self.datrie[key]
+            if node == NodeType.EOA:
+                eoa.write(row)
+            elif node == NodeType.SC:
+                sc.write(row)
+            else:
+                unk.write(row)
+
+        eoa.close()
+        sc.close()
+        unk.close()

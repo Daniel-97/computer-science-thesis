@@ -12,8 +12,9 @@ Build the trie used by the parser for address classification
 
 ```bash
 python trie_builder.py \
---input /data/backup/eth/blocks/output_0-999999.json.gz
---output trie_dump/trie.trie
+--input /data/backup/eth/blocks/output_0-999999.json.gz \
+--output trie_dump/trie.trie \
+--print-stat
 ```
 
 ### Run parser
