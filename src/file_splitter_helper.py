@@ -66,10 +66,11 @@ class FileSplitterHelper:
                 if key not in element:
                     element[key] = None
 
-                if type(element[key]) is list:
+                element_type = type(element[key])
+                if element_type is list:
                     csv_string += (',' if index > 0 else '') + ';'.join(element[key])
                 else:
-                    csv_string += (',' if index > 0 else '') + f'{element[key]}'
+                    csv_string += (',' if index > 0 else '') + (f'{element[key]:.20f}' if element_type == float else f'{element[key]}')
 
             csv_string += '\n'
             return csv_string

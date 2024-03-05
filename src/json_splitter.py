@@ -84,6 +84,8 @@ class EthereumJsonParser:
         self.convert_filed(transaction, 'gasPrice')
         self.convert_filed(transaction, 'gasUsed')
         self.convert_filed(transaction, 'value')
+        if transaction['value'] != 0:
+            transaction['value'] = transaction['value'] * pow(10,-21)
 
     def convert_filed(self, dict: dict, field_name: str) -> int:
         if field_name in dict:
