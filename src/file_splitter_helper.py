@@ -28,7 +28,7 @@ class FileSplitterHelper:
         if ENABLE_COMPRESSION:
             self.file = gzip.GzipFile(self._file_name(), 'wb')
         else:
-            self.file = open(self._file_name(), 'w')
+            self.file = open(self._file_name(), 'w', buffering=pow(2, 24))
 
     def append(self, element: dict):
         
@@ -55,10 +55,10 @@ class FileSplitterHelper:
             # if if_first_row:
             #     csv_string = ','.join(self.headers) + '\n'
             
-            if len(element.keys()) > len(self.headers):
-                for key in element.keys():
-                    if key not in self.headers and key != 'contractAddress':
-                        print(f'Missing properties in csv headers! Key: {key} value: {element[key]}')
+            # if len(element.keys()) > len(self.headers):
+            #     for key in element.keys():
+            #         if key not in self.headers and key != 'contractAddress':
+            #             print(f'Missing properties in csv headers! Key: {key} value: {element[key]}')
 
             # Flatten all array items
             for index, key in enumerate(self.headers):
