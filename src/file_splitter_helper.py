@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 from utils import read_headers
 import gzip
+import os
 
 ENABLE_COMPRESSION = False
 class FileSplitterHelper:
@@ -93,6 +94,6 @@ class FileSplitterHelper:
             self.file_size = 0
 
     def _file_name(self):
-        file_name = f'{self.output_folder}/{self.file_prefix}-{self.file_number}.{self.format}'
+        file_name = f'{self.output_folder}/{self.file_prefix}-{self.file_number}-{os.getpid()}.{self.format}'
         file_name +=  '.gz' if ENABLE_COMPRESSION else ''
         return file_name

@@ -9,6 +9,7 @@ from ethereum_client import EthereumClient
 import gzip
 from dotenv import load_dotenv
 import multiprocessing
+import json
 
 class EthereumJsonParser:
 
@@ -18,13 +19,11 @@ class EthereumJsonParser:
             input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
-            trie_path: str,
-            blocks_count: int
+            trie_path: str
         ):
 
         # PARAMETERS
         self.file_format = file_format
-        self.blocks_count = blocks_count
 
         # ETH CLIENT
         self.eth_client = EthereumClient()
@@ -184,7 +183,6 @@ if __name__ == "__main__":
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     parser.add_argument('-t', '--trie', required=True, help="Trie dump path", type=str)
-    parser.add_argument('-b', '--blocks-count', required=True, help="Number of blocks in the dump", type=int)
     args = parser.parse_args()
 
     # Init ethereum json parser
@@ -193,15 +191,21 @@ if __name__ == "__main__":
         input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
-        trie_path=args.trie,
-        blocks_count=args.blocks_count
+        trie_path=args.trie
     )
 
+    element_per_file = int(((args.end_block - args.start_block) + 1) / multiprocessing.cpu_count()) + 1;
+    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+        pool.starmap(ethereum_parser.parse_file, [
+            (args.input, 0 , 500000),
+            (args.input, 500001, 999999)
+        ])
+
     # Start parsing
-    ethereum_parser.parse_file(
-        file_path=args.input,
-        start_block=args.start_block,
-        end_block=args.end_block
-    )
+    # ethereum_parser.parse_file(
+    #     file_path=args.input,
+    #     start_block=args.start_block,
+    #     end_block=args.end_block
+    # )
 
     ethereum_parser.close()
