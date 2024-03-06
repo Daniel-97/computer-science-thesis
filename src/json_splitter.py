@@ -8,6 +8,7 @@ from model_parser.simple_model_parser import SimpleModelParser
 from ethereum_client import EthereumClient
 import gzip
 from dotenv import load_dotenv
+import multiprocessing
 
 class EthereumJsonParser:
 
@@ -17,11 +18,13 @@ class EthereumJsonParser:
             input_file_path: str,
             max_file_size_mb: int,
             file_format: str,
-            trie_path: str
+            trie_path: str,
+            blocks_count: int
         ):
 
         # PARAMETERS
         self.file_format = file_format
+        self.blocks_count = blocks_count
 
         # ETH CLIENT
         self.eth_client = EthereumClient()
@@ -96,14 +99,14 @@ class EthereumJsonParser:
         file_name = file_path.split('/')[-1]
         print(f'Start parsing file {file_name} from block {start_block} to block {end_block}')
         with gzip.open(file_path, "rb") as file:
-
+            
             close = False
             parse_block = False
             start_block_hex = hex(start_block)
             end_block_hex = hex(end_block)
 
             # Loop through the array
-            for block in ijson.items(file, "item"):
+            for block in ijson.items(file, "item", ):
                 
                 if close:
                     break
@@ -175,6 +178,7 @@ if __name__ == "__main__":
     parser.add_argument('-sb','--start-block', required=True, help="Start block number (integer)", type=int) # Start parsing from the specified block (included)
     parser.add_argument('-eb', '--end-block', required=True, help="End block number (integer)", type=int) # End parsing to this block number (included)
     parser.add_argument('-t', '--trie', required=True, help="Trie dump path", type=str)
+    parser.add_argument('-b', '--blocks-count', required=True, help="Number of blocks in the dump", type=int)
     args = parser.parse_args()
 
     # Init ethereum json parser
@@ -183,7 +187,8 @@ if __name__ == "__main__":
         input_file_path=args.input,
         max_file_size_mb=args.size,
         file_format=args.format,
-        trie_path=args.trie
+        trie_path=args.trie,
+        blocks_count=args.blocks_count
     )
 
     # Start parsing
