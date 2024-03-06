@@ -44,8 +44,6 @@ class EthereumJsonParser:
         self.model2_parser.parse_trie(self.trie)
         self.model1_parser.close_parser()
         self.model2_parser.close_parser()
-        print(f"eth_client tot_requests: {self.eth_client.tot_requests}, avg_time(s): {self.eth_client.avg_response_time}")
-        print(f'Trie nodes: {len(self.trie.datrie)}')
         print(f'Trie lookup time: {self.trie.lookup_time}')
 
 
@@ -58,38 +56,45 @@ class EthereumJsonParser:
         del transaction['r']
         del transaction['s']
 
-        transaction['toAddress'] = transaction.get('to').get('address')
-        transaction['fromAddress'] = transaction.get('from').get('address')
+        if 'address' in transaction['to']:
+            transaction['toAddress'] = transaction['to']['address']
+        else:
+            transaction['toAddress'] = None
+        transaction['fromAddress'] = transaction['from']['address']
 
         del transaction['to']
         del transaction['from']
 
     def clean_block(self, block: dict):
-        del block['logsBloom']
-        del block['@type']
         if "ommers" in block:
             del block["ommers"]
-        if "miner" in block:
-            block["minerAddress"] = block.get("miner").get("address")
+        if "miner" in block and 'address' in block['miner']:
+            block["minerAddress"] = block['miner']['address']
             del block["miner"]
         
     def convert_block_field(self, block: dict) -> dict:
-        self.convert_filed(block, 'number')
-        self.convert_filed(block, 'gasLimit')
-        self.convert_filed(block, 'gasUsed')
-        self.convert_filed(block, 'timestamp')
+        block['number'] = self.convert_hex_filed(block['number'])
+        block['gasLimit'] = self.convert_hex_filed(block['gasLimit'])
+        if block['gasUsed'] == '0x0':
+            block['gasUsed'] = 0
+        else:
+            block['gasUsed'] = self.convert_hex_filed(block['gasUsed'])
+        block['timestamp'] = self.convert_hex_filed(block['timestamp'])
 
     def convert_transaction_field(self, transaction: dict) -> dict:
-        self.convert_filed(transaction, 'gas')
-        self.convert_filed(transaction, 'gasPrice')
-        self.convert_filed(transaction, 'gasUsed')
-        self.convert_filed(transaction, 'value')
+        if transaction['gas'] == transaction['gasUsed']:
+            transaction['gasUsed'] = transaction['gas'] = self.convert_hex_filed(transaction['gas'])
+        else:
+            transaction['gas'] = self.convert_hex_filed(transaction['gas'])
+            transaction['gasUsed'] = self.convert_hex_filed(transaction['gasUsed'])
+
+        transaction['gasPrice'] = self.convert_hex_filed(transaction['gasPrice'])
+        transaction['value'] = self.convert_hex_filed(transaction['value'])
         if transaction['value'] != 0:
             transaction['value'] = transaction['value'] * pow(10,-21)
-
-    def convert_filed(self, dict: dict, field_name: str) -> int:
-        if field_name in dict:
-            dict[field_name] = int(dict[field_name],16)
+    
+    def convert_hex_filed(self, value: str) -> int:
+        return int(value,16)
     
     def parse_file(self, file_path: str, start_block: int, end_block: int):
 
@@ -102,8 +107,9 @@ class EthereumJsonParser:
             start_block_hex = hex(start_block)
             end_block_hex = hex(end_block)
 
+            blocks = ijson.items(file, "item", buf_size=pow(2,19))
             # Loop through the array
-            for block in ijson.items(file, "item"):
+            for block in blocks:
                 
                 if close:
                     break
