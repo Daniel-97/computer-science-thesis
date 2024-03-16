@@ -6,8 +6,12 @@ return from,to, apoc.create.vRelationship(from, 'transfered',{amount: t.value}, 
 
 // Projected graph transfer
 MATCH (from: Account)-[:sent]-(t:Transaction)-[:transfered]->(to: Account)
-with gds.graph.project('transfer',from, to) as g
-return  g.graphName AS graph, g.nodeCount AS nodes, g.relationshipCount AS rels
+WITH 
+    gds.graph.project('transfer',from, to) as g
+RETURN  
+    g.graphName AS graph,
+    g.nodeCount AS nodes,
+    g.relationshipCount AS rels
 
 // Projected graph invocation
 MATCH (from: Account)-[:sent]-(t:Transaction)-[:invoked]->(to: Account)
