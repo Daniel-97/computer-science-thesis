@@ -74,3 +74,30 @@ bin/neo4j-admin database import full \
 --relationships=TO=import/output/model2-data/headers/unk_rel_headers.csv,import/output/model2-data/rel/unk.\* \
 model2
 ```
+
+## Query Cypher
+
+
+<table>
+<tr> <th>#</th> <th>Descrizione</th> <th>Model A</th> <th>Model B</th> </tr>
+<tr>
+<td>1</td>
+<td>
+Conta le transazioni di qualsiasi tipo
+</td>
+<td> <pre>
+MATCH 
+    (n: Transaction) 
+RETURN 
+    COUNT(*)
+</pre> </td>
+<td> <pre>
+MATCH
+    (s:Account)-[r]->(d) 
+RETURN 
+    COUNT(*)
+</pre> </td>
+</tr>
+</table>
+
+
