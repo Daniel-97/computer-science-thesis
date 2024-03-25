@@ -80,6 +80,7 @@ model2
 
 <table>
 <tr> <th>#</th> <th>Descrizione</th> <th>Model A</th> <th>Model B</th> </tr>
+
 <tr>
 <td>1</td>
 <td>
@@ -98,6 +99,49 @@ RETURN
     COUNT(*)
 </pre> </td>
 </tr>
+
+<tr>
+<td>2</td>
+<td>
+Conta tutte le transazioni che hanno trasferito 0 ether
+</td>
+<td> <pre>
+MATCH 
+    (n: Transaction)
+WHERE 
+    n.value = 0 
+RETURN 
+    COUNT(*)
+</pre> </td>
+<td> <pre>
+MATCH
+    (s:Account)-[r]->(d)
+WHERE 
+    r.value = 0 
+RETURN 
+    COUNT(*)
+</pre> </td>
+</tr>
+
+<tr>
+<td>3</td>
+<td>
+Selezionare tutte le transazioni dell'account con indirizzo 0x54daeb3e8a6bbc797e4ad2b0339f134b186e4637
+</td>
+<td> <pre>
+MATCH
+    (a:Account)-[:sent]->(t:Transaction)
+WHERE 
+    a.address = "0x54daeb3e8a6bbc797e4ad2b0339f134b186e4637"
+RETURN t
+</pre> </td>
+<td> <pre>
+MATCH
+    (a:Account {address: "0x54daeb3e8a6bbc797e4ad2b0339f134b186e4637"})-[r]->()
+RETURN r
+</pre> </td>
+</tr>
+
 </table>
 
 
