@@ -79,7 +79,12 @@ model2
 
 
 <table>
-<tr> <th>#</th> <th>Descrizione</th> <th>Model A</th> <th>Model B</th> </tr>
+<tr> 
+    <th>#</th>
+    <th style="width: 10px">Descrizione</th>
+    <th>Model A</th>
+    <th>Model B</th>
+</tr>
 
 <tr>
 <td>1</td>
