@@ -79,13 +79,16 @@ model2
 
 
 <table>
+<thead>
 <tr> 
     <th>#</th>
     <th style="width: 10px">Descrizione</th>
     <th>Model A</th>
     <th>Model B</th>
 </tr>
+</thead>
 
+<tbody>
 <tr>
 <td>1</td>
 <td>
@@ -357,6 +360,488 @@ ORDER by numTransactions DESC
 </pre> </td>
 </tr>
 
+<tr>
+<td>12</td>
+<td>
+Media numero nodi vicini di ogni EOA
+</td>
+<td> <pre>
+MATCH 
+    (a:Account)-[:SENT]-(t:Transaction)-[:TRANSFERRED]->(b)
+WITH 
+    b,
+    COUNT(b) AS numNeighbors
+RETURN
+    AVG(numNeighbors)
+</pre> </td>
+<td> <pre>
+MATCH 
+    (a:Account)-[:TRANSFERRED]->(b)
+WITH 
+    b,
+    COUNT(b) AS numNeighbors
+RETURN
+    AVG(numNeighbors)
+</pre> </td>
+</tr>
+
+<tr>
+<td>13</td>
+<td>
+Conta i vicini Account di secondo grado (2 hop di distanza) dei primi 100 nodi che hanno fatto piu transazioni verso EOA
+</td>
+<td> <pre>
+MATCH 
+    (n:Account)-[r:SENT]-(t:Transaction)-[:TRANSFERRED]->(b:Account)
+WHERE 
+    n <> b
+WITH 
+    n,
+    COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 100
+MATCH 
+    (n)-[*4]->(neighbor)
+WHERE 
+    neighbor <> n and (neighbor: Account)
+RETURN 
+    COUNT(neighbor);
+</pre> </td>
+<td> <pre>
+MATCH 
+    (n:Account)-[r:TRANSFERRED]->(b:Account)
+WHERE n <> b
+WITH n, COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 100
+MATCH 
+    (n)-[*2]->(neighbor)
+WHERE 
+    neighbor <> n and (neighbor: Account)
+RETURN 
+    COUNT(neighbor);
+</pre> </td>
+</tr>
+
+<tr>
+<td>14</td>
+<td>
+Conta i vicini Account di terzo grado (3 hop di distanza) dell’account che ha effettuato piu transaction verso EOA
+</td> <td> <pre>
+MATCH 
+    (n:Account)-[r:SENT]-(t:Transaction)-[:TRANSFERRED]->(b:Account)
+WHERE n <> b
+WITH 
+    n,
+    COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 1
+MATCH 
+    (n)-[*6]->(neighbor)
+WHERE 
+    neighbor <> n and (neighbor: Account)
+RETURN 
+    COUNT(neighbor);
+</pre> </td>
+<td> <pre>
+MATCH 
+    (n:Account)-[r:TRANSFERRED]->(b:Account)
+WHERE 
+    n <> b
+WITH 
+    n,
+    COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 1
+MATCH 
+    (n)-[*3]->(neighbor)
+WHERE 
+    neighbor <> n and (neighbor: Account)
+RETURN 
+    COUNT(neighbor);
+</pre> </td>
+</tr>
+
+<tr>
+<td>15</td>
+<td>
+Conta i vicini Account di terzo grado (3 hop di distanza) dell’account 0x32be343b94f860124dc4fee278fdcbd38c102d88
+</td> <td> <pre>
+MATCH
+    (a:Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})
+MATCH 
+    (a)-[*6]->(neighbor: Account)
+WHERE 
+    a <> neighbor
+RETURN 
+    count(neighbor)
+</pre> </td>
+<td> <pre>
+MATCH 
+    (a:Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})
+MATCH 
+    (a)-[*3]->(neighbor: Account)
+WHERE a <> neighbor
+RETURN 
+    COUNT(neighbor)
+</pre> </td>
+</tr>
+
+<tr>
+<td>16</td>
+<td>
+Conta i vicini Account di quarto grado dell’account 0x32be343b94f860124dc4fee278fdcbd38c102d88
+</td> <td> <pre>
+MATCH
+    (a:Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})
+MATCH 
+    (a)-[*8]->(neighbor: Account)
+WHERE 
+    a <> neighbor
+RETURN 
+    count(neighbor)
+</pre> </td>
+<td> <pre>
+MATCH 
+    (a:Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})
+MATCH 
+    (a)-[*4]->(neighbor: Account)
+WHERE a <> neighbor
+RETURN 
+    COUNT(neighbor)
+</pre> </td>
+</tr>
+
+<tr>
+<td>17</td>
+<td>
+Ritorna tutte le transaction vicine della transazione con hash 0x4b1ebc387227fedfb5753134e9009a3e2aceb83e86aa4df12dc5531984447d34
+</td> <td> <pre>
+MATCH
+    (t:Transaction {hash: '0x4b1ebc387227fedfb5753134e9009a3e2aceb83e86aa4df12dc5531984447d34'})-[]->(a: Account)
+MATCH 
+    (a)-[:SENT]->(t1: Transaction)
+RETURN t1
+</pre> </td>
+<td> <pre>
+MATCH 
+    (a:Account)-[r {hash: '0x4b1ebc387227fedfb5753134e9009a3e2aceb83e86aa4df12dc5531984447d34'}]->(b:Account)
+MATCH
+    (b)-[r2]->()
+RETURN r2
+</pre> </td>
+</tr>
+
+<tr>
+<td>18</td>
+<td>
+Ritorna tutte le transazioni vicine di tutte le transazioni effettuate dall'account 0x32be343b94f860124dc4fee278fdcbd38c102d88 
+</td> <td> <pre>
+MATCH
+    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]-(t: Transaction)-[]-(b: Account)-[]-(t2: Transaction)-[]->(c: Account)
+RETURN 
+    t2
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]->(b)-[r2]-(c)-[r3]-(d)
+RETURN 
+    r3
+</pre> </td>
+</tr>
+
+<tr>
+<td>19</td>
+<td>
+Ritorna le transazioni vicine dei primi 10 account che hanno effettuato piu transazioni
+</td> <td> <pre>
+MATCH 
+    (n:Account)-[r:SENT]-(t:Transaction)-[:TRANSFERRED]->(b:Account)
+WHERE n <> b
+WITH n, COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 10
+MATCH (b)-[]->(t1: Transaction)
+RETURN t1
+</pre> </td>
+<td> <pre>
+MATCH 
+    (n:Account)-[r:TRANSFERRED]->(b:Account)
+WHERE 
+    n <> b
+WITH n, COUNT(r) AS numTransactions
+ORDER BY numTransactions DESC
+LIMIT 10
+MATCH (b)-[r2]->(c)
+RETURN
+    r2
+</pre> </td>
+</tr>
+
+<tr>
+<td>20</td>
+<td>
+Ritorna tutte le transazioni presenti nel blocco della transazione con hash 0x35165e50896a08024b760e400e84a82b46401d655509ad4b8b1694acd9966b3d
+</td> <td> <pre>
+MATCH
+    (t: Transaction {hash: '0x35165e50896a08024b760e400e84a82b46401d655509ad4b8b1694acd9966b3d'})-[:CONTAINED_IN]->(b: Block)
+MATCH
+    (t2: Transaction)-[:CONTAINED_IN]->(b2: Block{hash: b.hash})
+RETURN t2
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account)
+WHERE 
+    t.hash = '0x35165e50896a08024b760e400e84a82b46401d655509ad4b8b1694acd9966b3d'
+MATCH
+    (c: Account)-[t1 {block_hash: t.block_hash}]->(d: Account)
+RETURN
+    t1
+</pre> </td>
+</tr>
+
+<tr>
+<td>21</td>
+<td>
+Ritornare tutti gli account che hanno fatto transazioni verso l'address del DAO 0xbb9bc244d798123fde783fcc1c72d3bb8c189413
+</td> <td> <pre>
+MATCH 
+    (a: Account)-[:SENT]->(t: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'}) 
+RETURN 
+    a;
+</pre> </td>
+<td> <pre>
+MATCH 
+    (a: Account)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'}) 
+RETURN 
+    a;
+</pre> </td>
+</tr>
+
+<tr>
+<td>22</td>
+<td>
+Contare tutte le transazioni dirette verso l'indirizzo del DAO 0xbb9bc244d798123fde783fcc1c72d3bb8c189413
+</td> <td> <pre>
+MATCH
+    (t: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'}) 
+RETURN 
+    COUNT(*);
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+RETURN 
+    COUNT(t);
+</pre> </td>
+</tr>
+
+<tr>
+<td>23</td>
+<td>
+Ritorna gli indirizzi che hanno fatto transazioni verso il DAO ordinati in modo decrescente sul numero di transazioni
+</td> <td> <pre>
+MATCH
+    (a: Account)-[]-(t: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+RETURN
+    a.address as address,
+    COUNT(*) as tot_txs, 
+    SUM(t.value) as eth
+ORDER BY tot_txs DESC
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+RETURN
+    a.address as address,
+    COUNT(*) as tot_txs, 
+    SUM(t.value) as eth
+ORDER BY tot_txs DESC
+</pre> </td>
+</tr>
+
+<tr>
+<td>24</td>
+<td>
+Ritorna gli account che hanno fatto piu transazioni verso il DAO ordinati per ether inviati
+</td> <td> <pre>
+MATCH
+    (a: Account)-[]-(t: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+RETURN
+    a.address as address,
+    COUNT(*) as tot_txs,
+    SUM(t.value) as eth
+ORDER BY eth DESC
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+RETURN
+    a.address as address,
+    COUNT(*) as tot_txs, 
+    SUM(t.value) as eth
+ORDER BY eth DESC
+</pre> </td>
+</tr>
+
+<tr>
+<td>25</td>
+<td>
+Ritorna il numero di transazioni verso il DAO raggruppate per giorno
+</td> <td> <pre>
+MATCH 
+    (block: Block)<-[]-(txs: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+WHERE
+    block.number >= 1400000 AND block.number <=2500000
+WITH datetime({epochSeconds:block.timestamp}) as datetime, count(txs) as tot_txs
+RETURN
+    date(datetime) as date,
+    SUM(tot_txs) as day_txs
+ORDER BY date ASC
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+WHERE 
+    t.block_number >=1400000 AND t.block_number <= 2500000
+WITH datetime({epochSeconds: t.block_timestamp}) as datetime, count(*) as tot_txs
+RETURN 
+    date(datetime) as date,
+    sum(tot_txs) as day_txs
+ORDER BY date ASC
+</pre> </td>
+</tr>
+
+<tr>
+<td>26</td>
+<td>
+Ritorna il numero di ether trasferiti verso il DAO raggrupati per giorno
+</td> <td> <pre>
+MATCH
+    (block: Block)<-[]-(txs: Transaction)-[]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+WHERE
+    block.number >= 1400000 AND block.number <=2000000
+WITH 
+    datetime({epochSeconds:block.timestamp}) as datetime, txs.value as eth
+RETURN
+    date(datetime) as date,
+    SUM(eth) as tot_eth
+ORDER BY date ASC
+</pre> </td>
+<td> <pre>
+MATCH
+    (a: Account)-[t]->(b: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+WHERE
+    t.block_number >=1400000 AND t.block_number <= 2500000
+WITH datetime({epochSeconds: t.block_timestamp}) as datetime, t.value as eth
+RETURN
+    date(datetime) as date,
+    SUM(eth) as tot_eth
+ORDER BY date ASC
+</pre> </td>
+</tr>
+
+<tr>
+<td>27</td>
+<td>
+Ritorna per i primi 100 account che hanno fatto più transazioni verso il DAO, gli indirizzi che sono più comuni (tra questi 100) ovvero gli indirizzi ai quali hanno fatto transazioni e la percentuale di quanto lo sono
+</td> <td> <pre>
+MATCH
+    (sender: Account)-[]-(txs: Transaction)-[]->(receiver: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+WITH sender, receiver, count(*) as num_txs
+ORDER BY num_txs DESC
+LIMIT 100
+MATCH 
+    (sender: Account)-[]-(txs2: Transaction)-[]->(common_receiver: Account)
+WHERE 
+    common_receiver <> receiver
+WITH sender, common_receiver, count(*) as tot_txs
+WITH common_receiver.address as common_address, count(*) as num_occurrence
+RETURN 
+    common_address,
+    num_occurrence,
+    num_occurrence * 100 / 100 as common_percentage
+ORDER BY num_occurrence DESC
+</pre> </td>
+<td> <pre>
+match (sender: Account)-[]->(receiver: Account {address: '0xbb9bc244d798123fde783fcc1c72d3bb8c189413'})
+with sender, receiver, count(*) as num_txs
+order by num_txs DESC
+LIMIT 100
+match (sender: Account)-[]->(common_receiver: Account)
+where common_receiver <> receiver
+with sender, common_receiver, count(*) as tot_txs
+with common_receiver.address as common_address, count(*) as num_occurrence
+return common_address, num_occurrence, num_occurrence * 100 / 100 as common_percentage
+order by num_occurrence DESC
+</pre> </td>
+</tr>
+
+<tr>
+<td>28</td>
+<td>
+Numero di transazioni totali verso EOA e SC e ether trasferiti per giorno fatte prima e dopo il DAO. Da blocco 1 200 000 a blocco 1 800 000 
+</td> <td> <pre>
+match (block: Block)<-[]-(txs: Transaction)-[]->(b: Account)
+where block.number >= 1300000 and block.number <=2000000
+with 
+    datetime({epochSeconds:block.timestamp}) as datetime,
+    sum(case when b.account_type = 1 then 1 else 0 end) as tot_eoa_txs,
+    sum(case when b.account_type = 2 then 1 else 0 end) as tot_sc_txs,
+    sum(txs.value) as eth
+return 
+    date(datetime) as date,
+    sum(tot_sc_txs) as tot_sc_txs,
+    sum(tot_eoa_txs) as tot_eoa_txs,
+    sum(eth) as tot_eth
+order by date ASC
+</pre> </td>
+<td> <pre>
+match (a: Account)-[txs]->(b: Account)
+where txs.block_number >=1400000 and txs.block_number <= 2000000
+with 
+    datetime({epochSeconds: txs.block_timestamp}) as datetime,
+    sum(case when b.account_type = 1 then 1 else 0 end) as tot_eoa_txs,
+    sum(case when b.account_type = 2 then 1 else 0 end) as tot_sc_txs,
+    sum(txs.value) as eth
+return 
+    date(datetime) as date,
+    sum(tot_sc_txs) as tot_sc_txs,
+    sum(tot_eoa_txs) as tot_eoa_txs,
+    sum(eth) as tot_eth
+order by date asc
+</pre> </td>
+</tr>
+
+<tr>
+<td>29</td>
+<td>
+Numero di contratti creati nel periodo del DAO
+</td> <td> <pre>
+match 
+    (block: Block)<-[]-(txs: Transaction)-[:CREATED]->(b: Account)
+where 
+    block.number >= 1200000 and block.number <=1800000
+with datetime({epochSeconds:block.timestamp}) as datetime, count(*) as tot_txs
+return 
+    date(datetime) as date,
+    sum(tot_txs) as tot_txs
+order by date ASC
+</pre> </td>
+<td> <pre>
+match 
+    (a: Account)-[t:CREATED]->(b: Account)
+where 
+    t.block_number >=1200000 and t.block_number <= 1800000
+with datetime({epochSeconds: t.block_timestamp}) as datetime, count(*) as tot_txs
+return
+    date(datetime) as date, sum(tot_txs)
+order by date asc
+</pre> </td>
+</tr>
+
+</tbody>
 </table>
 
 
