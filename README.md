@@ -332,7 +332,7 @@ RETURN
 </tr>
 
 <tr>
-<td>11</td>
+<td>12</td>
 <td>
 Ritorna per ogni blocco, il numero di transazioni al suo interno
 </td>
@@ -361,7 +361,7 @@ ORDER by numTransactions DESC
 </tr>
 
 <tr>
-<td>12</td>
+<td>13</td>
 <td>
 Media numero nodi vicini di ogni EOA
 </td>
@@ -386,7 +386,7 @@ RETURN
 </tr>
 
 <tr>
-<td>13</td>
+<td>14</td>
 <td>
 Conta i vicini Account di secondo grado (2 hop di distanza) dei primi 100 nodi che hanno fatto piu transazioni verso EOA
 </td>
@@ -424,7 +424,7 @@ RETURN
 </tr>
 
 <tr>
-<td>14</td>
+<td>15</td>
 <td>
 Conta i vicini Account di terzo grado (3 hop di distanza) dell’account che ha effettuato piu transaction verso EOA
 </td> <td> <pre>
@@ -463,7 +463,7 @@ RETURN
 </tr>
 
 <tr>
-<td>15</td>
+<td>16</td>
 <td>
 Conta i vicini Account di terzo grado (3 hop di distanza) dell’account 0x32be343b94f860124dc4fee278fdcbd38c102d88
 </td> <td> <pre>
@@ -488,7 +488,7 @@ RETURN
 </tr>
 
 <tr>
-<td>16</td>
+<td>17</td>
 <td>
 Conta i vicini Account di quarto grado dell’account 0x32be343b94f860124dc4fee278fdcbd38c102d88
 </td> <td> <pre>
@@ -513,7 +513,7 @@ RETURN
 </tr>
 
 <tr>
-<td>17</td>
+<td>18</td>
 <td>
 Ritorna tutte le transaction vicine della transazione con hash 0x4b1ebc387227fedfb5753134e9009a3e2aceb83e86aa4df12dc5531984447d34
 </td> <td> <pre>
@@ -533,7 +533,7 @@ RETURN r2
 </tr>
 
 <tr>
-<td>18</td>
+<td>19</td>
 <td>
 Ritorna tutte le transazioni vicine di tutte le transazioni effettuate dall'account 0x32be343b94f860124dc4fee278fdcbd38c102d88 
 </td> <td> <pre>
@@ -551,7 +551,7 @@ RETURN
 </tr>
 
 <tr>
-<td>19</td>
+<td>20</td>
 <td>
 Ritorna le transazioni vicine dei primi 10 account che hanno effettuato piu transazioni
 </td> <td> <pre>
@@ -579,7 +579,7 @@ RETURN
 </tr>
 
 <tr>
-<td>20</td>
+<td>21</td>
 <td>
 Ritorna tutte le transazioni presenti nel blocco della transazione con hash 0x35165e50896a08024b760e400e84a82b46401d655509ad4b8b1694acd9966b3d
 </td> <td> <pre>
@@ -602,7 +602,7 @@ RETURN
 </tr>
 
 <tr>
-<td>21</td>
+<td>22</td>
 <td>
 Ritornare tutti gli account che hanno fatto transazioni verso l'address del DAO 0xbb9bc244d798123fde783fcc1c72d3bb8c189413
 </td> <td> <pre>
@@ -620,7 +620,7 @@ RETURN
 </tr>
 
 <tr>
-<td>22</td>
+<td>23</td>
 <td>
 Contare tutte le transazioni dirette verso l'indirizzo del DAO 0xbb9bc244d798123fde783fcc1c72d3bb8c189413
 </td> <td> <pre>
@@ -638,7 +638,7 @@ RETURN
 </tr>
 
 <tr>
-<td>23</td>
+<td>24</td>
 <td>
 Ritorna gli indirizzi che hanno fatto transazioni verso il DAO ordinati in modo decrescente sul numero di transazioni
 </td> <td> <pre>
@@ -662,7 +662,7 @@ ORDER BY tot_txs DESC
 </tr>
 
 <tr>
-<td>24</td>
+<td>25</td>
 <td>
 Ritorna gli account che hanno fatto piu transazioni verso il DAO ordinati per ether inviati
 </td> <td> <pre>
@@ -686,7 +686,7 @@ ORDER BY eth DESC
 </tr>
 
 <tr>
-<td>25</td>
+<td>26</td>
 <td>
 Ritorna il numero di transazioni verso il DAO raggruppate per giorno
 </td> <td> <pre>
@@ -714,7 +714,7 @@ ORDER BY date ASC
 </tr>
 
 <tr>
-<td>26</td>
+<td>27</td>
 <td>
 Ritorna il numero di ether trasferiti verso il DAO raggrupati per giorno
 </td> <td> <pre>
@@ -743,7 +743,7 @@ ORDER BY date ASC
 </tr>
 
 <tr>
-<td>27</td>
+<td>28</td>
 <td>
 Ritorna per i primi 100 account che hanno fatto più transazioni verso il DAO, gli indirizzi che sono più comuni (tra questi 100) ovvero gli indirizzi ai quali hanno fatto transazioni e la percentuale di quanto lo sono
 </td> <td> <pre>
@@ -779,7 +779,7 @@ order by num_occurrence DESC
 </tr>
 
 <tr>
-<td>28</td>
+<td>29</td>
 <td>
 Numero di transazioni totali verso EOA e SC e ether trasferiti per giorno fatte prima e dopo il DAO. Da blocco 1 200 000 a blocco 1 800 000 
 </td> <td> <pre>
@@ -815,7 +815,7 @@ order by date asc
 </tr>
 
 <tr>
-<td>29</td>
+<td>30</td>
 <td>
 Numero di contratti creati nel periodo del DAO
 </td> <td> <pre>
