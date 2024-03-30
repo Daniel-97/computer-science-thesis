@@ -513,29 +513,29 @@ RETURN r2
 Ritorna tutte le transazioni vicine di tutte le transazioni effettuate dall'account 0x32be343b94f860124dc4fee278fdcbd38c102d88 
 </td> <td> <pre>
 MATCH
-    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]-(t: Transaction)-[]-(b: Account)-[]-(t2: Transaction)-[]->(c: Account)
+    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]-(t: Transaction)-[]-(b: Account)-[]-(t2: Transaction)
 RETURN 
     t2
 </pre> </td>
 <td> <pre>
 MATCH
-    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]->(b)-[r2]-(c)-[r3]-(d)
+    (a: Account {address: '0x32be343b94f860124dc4fee278fdcbd38c102d88'})-[]->(b)-[r2]-(c)
 RETURN 
-    r3
+    r2
 </pre> </td>
 </tr>
 
 <tr>
 <td>Q19</td>
 <td>
-Ritorna le transazioni vicine dei primi 10 account che hanno effettuato piu transazioni
+Ritorna le transazioni vicine dei primi 5 account che hanno effettuato piu transazioni
 </td> <td> <pre>
 MATCH 
     (n:Account)-[r:SENT]-(t:Transaction)-[:TRANSFERRED]->(b:Account)
 WHERE n <> b
 WITH n, COUNT(r) AS numTransactions
 ORDER BY numTransactions DESC
-LIMIT 10
+LIMIT 5
 MATCH (b)-[]->(t1: Transaction)
 RETURN t1
 </pre> </td>
@@ -546,7 +546,7 @@ WHERE
     n <> b
 WITH n, COUNT(r) AS numTransactions
 ORDER BY numTransactions DESC
-LIMIT 10
+LIMIT 5
 MATCH (b)-[r2]->(c)
 RETURN
     r2

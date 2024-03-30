@@ -5,16 +5,16 @@
 CREATE CONSTRAINT IF NOT EXISTS FOR (a: Account) REQUIRE a.address IS UNIQUE;
 
 // Transaction hash index
-CREATE INDEX transaction_rel_index IF NOT EXISTS FOR ()-[r: to]-() ON (r.hash);
-CREATE INDEX transaction_rel_index2 IF NOT EXISTS FOR ()-[r: created]-() ON (r.hash);
-CREATE INDEX transaction_rel_index3 IF NOT EXISTS FOR ()-[r: invoked]-() ON (r.hash);
-CREATE INDEX transaction_rel_index4 IF NOT EXISTS FOR ()-[r: transfered]-() ON (r.hash);
+CREATE INDEX transaction_rel_index IF NOT EXISTS FOR ()-[r: TO]-() ON (r.hash);
+CREATE INDEX transaction_rel_index2 IF NOT EXISTS FOR ()-[r: CREATED]-() ON (r.hash);
+CREATE INDEX transaction_rel_index3 IF NOT EXISTS FOR ()-[r: INVOKED]-() ON (r.hash);
+CREATE INDEX transaction_rel_index4 IF NOT EXISTS FOR ()-[r: TRANSFERRED]-() ON (r.hash);
 
 // Transaction block hash index
-CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: to]-() ON (r.block_hash);
-CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: created]-() ON (r.block_hash);
-CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: invoked]-() ON (r.block_hash);
-CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: transfered]-() ON (r.block_hash);
+CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: TO]-() ON (r.block_hash);
+CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: CREATED]-() ON (r.block_hash);
+CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: INOVKED]-() ON (r.block_hash);
+CREATE INDEX transaction_block_rel_index IF NOT EXISTS FOR ()-[r: TRANSFERRED]-() ON (r.block_hash);
 
 
 // QUERY 1, EOA TRANSACTIONS
