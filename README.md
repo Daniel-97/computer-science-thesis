@@ -759,7 +759,7 @@ order by num_occurrence DESC
 Numero di transazioni totali verso EOA e SC e ether trasferiti per giorno fatte prima e dopo il DAO. Da blocco 1 200 000 a blocco 1 800 000 
 </td> <td> <pre>
 match (block: Block)<-[]-(txs: Transaction)-[]->(b: Account)
-where block.number >= 1300000 and block.number <=2000000
+where block.number >= 1300000 and block.number <= 2000000
 with 
     datetime({epochSeconds:block.timestamp}) as datetime,
     sum(case when b.account_type = 1 then 1 else 0 end) as tot_eoa_txs,
@@ -774,7 +774,7 @@ order by date ASC
 </pre> </td>
 <td> <pre>
 match (a: Account)-[txs]->(b: Account)
-where txs.block_number >=1400000 and txs.block_number <= 2000000
+where txs.block_number >= 1300000 and txs.block_number <= 2000000
 with 
     datetime({epochSeconds: txs.block_timestamp}) as datetime,
     sum(case when b.account_type = 1 then 1 else 0 end) as tot_eoa_txs,
