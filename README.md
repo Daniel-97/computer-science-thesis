@@ -528,7 +528,7 @@ RETURN
 <tr>
 <td>Q19</td>
 <td>
-Ritorna le transazioni vicine dei primi 10 account che hanno effettuato piu transazioni
+Conta le transazioni vicine dei primi 10 account che hanno effettuato piu transazioni
 </td> <td> <pre>
 MATCH 
     (n:Account)-[r:SENT]-(t:Transaction)-[:TRANSFERRED]->(b:Account)
@@ -537,7 +537,8 @@ WITH n, COUNT(r) AS numTransactions
 ORDER BY numTransactions DESC
 LIMIT 10
 MATCH (b)-[]->(t1: Transaction)
-RETURN t1
+RETURN
+    COUNT(r1)
 </pre> </td>
 <td> <pre>
 MATCH 
@@ -549,7 +550,7 @@ ORDER BY numTransactions DESC
 LIMIT 10
 MATCH (b)-[r2]->(c)
 RETURN
-    r2
+    COUNT(r2)
 </pre> </td>
 </tr>
 
